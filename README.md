@@ -1,14 +1,17 @@
-# GSE (Gnome Sequencer Enhanced) for WoW 3.3.5a
+# GSE (Gnome Sequencer Enhanced) for WoW 3.3.5a/Project Ascension -Season 9-
 
 A revival and restoration of Gnome Sequencer Enhanced for World of Warcraft 3.3.5a (Wrath of the Lich King).
 
 ## About
 
-GSE (Gnome Sequencer Enhanced) is an advanced macro sequencer for World of Warcraft that allows players to create and execute complex macro sequences, bypassing normal macro limitations. This version has been specifically restored and fixed for WoW 3.3.5a compatibility.
+Almost all of this is the same as Cerberus's original GSE Backport update. I simply took his and Gummed's legwork and then added a few fixes and added support for use with the Project Ascension client as the original implementation didnt work properly, throwing errors in the ascension client, and had no means to load custom spells and abilities that werent properly registered in the default client.
+
+GSE (Gnome Sequencer Enhanced) is an advanced macro sequencer for World of Warcraft that allows players to create and execute complex macro sequences, bypassing normal macro limitations. This version has been specifically restored and fixed for WoW 3.3.5a compatibility and then further iterated on with fixes and edits to allow usage with Project Ascensions custom client.
 
 **Original Author**: TimothyLuke  
 **WotLK Backport**: Gummed (Warmane) - abandoned  
 **Revival & Fixes**: cerberus (January 2025)
+**Adapted for Ascension**: dmjohn0x (August 2025)
 
 ## Features
 
@@ -28,7 +31,6 @@ GSE (Gnome Sequencer Enhanced) is an advanced macro sequencer for World of Warcr
    ```
    Interface/
    └── AddOns/
-       └── GSE-WotLK-3.3.5a/
            ├── GSE/
            ├── GSE_GUI/
            └── GSE_LDB/
@@ -58,6 +60,7 @@ The addon includes documented sample macros for all classes. Load them with `/gs
 - Paladin: Retribution DPS, Holy Healing
 - Hunter: Beast Mastery, Marksmanship
 - And more for all classes!
+-For Project Ascension, you'll need to make you macros "Global" when selecting Class/Specialization as Project Ascension is classless.
 
 ## What's Been Fixed
 
