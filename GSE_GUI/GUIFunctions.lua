@@ -68,19 +68,35 @@ function GSE.GUILoadEditor(key, incomingframe, recordedstring)
     classid = tonumber(elements[1])
     sequenceName = elements[2]
 	
-    sequence = GSE.CloneSequence(GSELibrary[classid][sequenceName], true)
+    -- Check if the library and sequence exist before cloning
+    if GSELibrary[classid] and GSELibrary[classid][sequenceName] then
+      sequence = GSE.CloneSequence(GSELibrary[classid][sequenceName], true)
+    end
+    
+    -- If sequence is still nil, don't create a fallback - this prevents corruption
+    if not sequence then
+      GSE.Print("Error: Could not load sequence '" .. (sequenceName or "unknown") .. "' for class " .. (classid or "unknown") .. ". Please recreate this sequence.")
+      -- Close the editor and return to viewer
+      if GSE.GUIEditFrame then
+        GSE.GUIEditFrame:Hide()
+      end
+      if GSE.GUIViewFrame then
+        GSE.GUIViewFrame:Show()
+      end
+      return
+    end
 	isNewFirstTimeCreated=false
   end
   GSE.GUIEditFrame.SequenceName = sequenceName
   GSE.GUIEditFrame.Sequence = sequence
   GSE.GUIEditFrame.ClassID = classid
-  GSE.GUIEditFrame.Default = sequence.Default
-  GSE.GUIEditFrame.PVP = sequence.PVP or sequence.Default
-  GSE.GUIEditFrame.Mythic = sequence.Mythic or sequence.Default
-  GSE.GUIEditFrame.Raid = sequence.Raid or sequence.Default
-  GSE.GUIEditFrame.Dungeon = sequence.Dungeon or sequence.Default
-  GSE.GUIEditFrame.Heroic = sequence.Heroic or sequence.Default
-  GSE.GUIEditFrame.Party = sequence.Party or sequence.Default
+  GSE.GUIEditFrame.Default = sequence.Default or 1
+  GSE.GUIEditFrame.PVP = sequence.PVP or sequence.Default or 1
+  GSE.GUIEditFrame.Mythic = sequence.Mythic or sequence.Default or 1
+  GSE.GUIEditFrame.Raid = sequence.Raid or sequence.Default or 1
+  GSE.GUIEditFrame.Dungeon = sequence.Dungeon or sequence.Default or 1
+  GSE.GUIEditFrame.Heroic = sequence.Heroic or sequence.Default or 1
+  GSE.GUIEditFrame.Party = sequence.Party or sequence.Default or 1
   GSE.GUIEditorPerformLayout(GSE.GUIEditFrame)
   GSE.GUIEditFrame.ContentContainer:SelectTab("config")
   incomingframe:Hide()
@@ -103,8 +119,10 @@ function GSE.getSequenceName()
     numberOfSeqs = 0
     for k,v in pairs(GSELibrary[0]) do
       numberOfSeqs = numberOfSeqs + 1
-      for i,j in ipairs(v.MacroVersions) do
-        GSELibrary[0][k].MacroVersions[tonumber(i)] = GSE.UnEscapeSequence(j)
+      if v.MacroVersions and type(v.MacroVersions) == "table" then
+        for i,j in ipairs(v.MacroVersions) do
+          GSELibrary[0][k].MacroVersions[tonumber(i)] = GSE.UnEscapeSequence(j)
+        end
       end
     end
   end
@@ -159,9 +177,11 @@ end
 function GSE.GUIUpdateSequenceDefinition(classid, SequenceName, sequence)
 
   -- Changes have been made so save them
-  for k,v in ipairs(sequence.MacroVersions) do
-    sequence.MacroVersions[k] = GSE.TranslateSequenceFromTo(v, GetLocale(), "enUS", SequenceName)
-    sequence.MacroVersions[k] = GSE.UnEscapeSequence(sequence.MacroVersions[k])
+  if sequence.MacroVersions and type(sequence.MacroVersions) == "table" then
+    for k,v in ipairs(sequence.MacroVersions) do
+      sequence.MacroVersions[k] = GSE.TranslateSequenceFromTo(v, GetLocale(), "enUS", SequenceName)
+      sequence.MacroVersions[k] = GSE.UnEscapeSequence(sequence.MacroVersions[k])
+    end
   end
 
   if not GSE.isEmpty(SequenceName) then

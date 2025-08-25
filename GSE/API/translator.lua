@@ -245,12 +245,21 @@ function GSE.TranslateSpell(str, fromLocale, toLocale, cleanNewLines)
         output = output  .. GSEOptions.KEYWORD .. GSE.TranslatorLanguageTables[Statics.TranslationKey][toLocale][nfoundspell] .. Statics.StringReset
         found = true
       else
-        GSE.PrintDebugMessage("Did not find : " .. etc .. " in " .. fromLocale, GNOME)
-        output = output  .. GSEOptions.UNKNOWN .. etc .. Statics.StringReset
-        if GSE.isEmpty(GSEOptions.UnfoundSpells) then
-          GSEOptions.UnfoundSpells = {}
+        -- Project Ascension compatibility: Check if spell exists via GetSpellInfo before marking as unknown
+        local spellName, rank, icon = GetSpellInfo(etc)
+        if spellName then
+          -- Spell exists in game client (likely custom Ascension spell), allow it through
+          GSE.PrintDebugMessage("Found custom/Ascension spell via GetSpellInfo: " .. etc, GNOME)
+          output = output .. GSEOptions.KEYWORD .. etc .. Statics.StringReset
+          found = true
+        else
+          GSE.PrintDebugMessage("Did not find : " .. etc .. " in " .. fromLocale .. " or game client", GNOME)
+          output = output  .. GSEOptions.UNKNOWN .. etc .. Statics.StringReset
+          if GSE.isEmpty(GSEOptions.UnfoundSpells) then
+            GSEOptions.UnfoundSpells = {}
+          end
+          GSEOptions.UnfoundSpells [etc] = true
         end
-        GSEOptions.UnfoundSpells [etc] = true
       end
     end
   end

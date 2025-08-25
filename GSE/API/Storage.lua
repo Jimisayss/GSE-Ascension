@@ -868,6 +868,46 @@ function GSE.DeleteMacroStub(sequenceName)
 end
 
 
+--- Clean up corrupted sequences that can't be edited or deleted through the UI
+function GSE.CleanCorruptedSequences()
+  local cleanedCount = 0
+  local sequenceNames = GSE.GetSequenceNames()
+  
+  for k,v in GSE.pairsByKeys(sequenceNames) do
+    local elements = GSE.split(k, ",")
+    local classid = tonumber(elements[1])
+    local sequenceName = elements[2]
+    
+    -- Try to clone the sequence - if it fails, it's corrupted
+    if GSELibrary[classid] and GSELibrary[classid][sequenceName] then
+      local testSequence = GSE.CloneSequence(GSELibrary[classid][sequenceName], true)
+      if not testSequence then
+        -- Sequence is corrupted, remove it
+        GSE.Print("Removing corrupted sequence: " .. sequenceName .. " (class " .. classid .. ")")
+        GSELibrary[classid][sequenceName] = nil
+        cleanedCount = cleanedCount + 1
+        
+        -- Also try to remove the associated macro stub
+        local macroIndex = GetMacroIndexByName(sequenceName)
+        if macroIndex and macroIndex > 0 then
+          DeleteMacro(sequenceName)
+          GSE.Print("Removed macro stub: " .. sequenceName)
+        end
+      end
+    end
+  end
+  
+  if cleanedCount > 0 then
+    GSE.Print("Cleaned " .. cleanedCount .. " corrupted sequences. Please /reload to refresh the sequence list.")
+    -- Only update GUI if the frame exists
+    if GSE.GUIViewFrame and GSE.GUIViewFrame.SequenceListbox then
+      GSE.GUIUpdateSequenceList()
+    end
+  else
+    GSE.Print("No corrupted sequences found.")
+  end
+end
+
 --- Not Used
 function GSE.GetDefaultIcon()
   local currentSpec, currentSpecID,defaulticon = GSE.GetCurrentSpecID()
@@ -1028,11 +1068,107 @@ function GSE.CreateButton(name, sequence)
   
   gsebutton.UpdateIcon = GSE.UpdateIcon
   gsebutton:HookScript("OnUpdate", GSE.btnOnUpdate)
+  gsebutton:HookScript("OnClick", GSE.btnOnClick)
   
 end
+
+function GSE.btnOnClick(self, button)
+  -- Advance castsequence position when button is clicked
+  local buttonName = self:GetName()
+  if GSE.CastSequenceState and GSE.CastSequenceState[buttonName] then
+    local state = GSE.CastSequenceState[buttonName]
+    state.position = state.position + 1
+    -- Position will wrap around in GetNextCastSequenceSpell if needed
+  end
+end
+
 function GSE.btnOnUpdate(self,...)
 local reset = self:GetAttribute("combatreset")
 GSE.UpdateIcon(self, reset)
+end
+
+-- Parse /castsequence command and return the next spell to cast
+function GSE.GetNextCastSequenceSpell(buttonName, castSequenceArgs)
+  -- Initialize tracking table if needed
+  if not GSE.CastSequenceState then
+    GSE.CastSequenceState = {}
+  end
+  
+  -- Parse the castsequence arguments
+  local spells = {}
+  local resetCondition = nil
+  
+  -- Handle reset conditions like "reset=target" or "reset=combat"
+  local args = castSequenceArgs
+  if string.find(args, "reset=") then
+    local resetPos = string.find(args, "reset=")
+    local spaceAfterReset = string.find(args, " ", resetPos)
+    if spaceAfterReset then
+      resetCondition = string.sub(args, resetPos, spaceAfterReset - 1)
+      args = string.sub(args, spaceAfterReset + 1)
+    end
+  end
+  
+  -- Split spells by comma
+  local currentPos = 1
+  while currentPos <= string.len(args) do
+    local commaPos = string.find(args, ",", currentPos)
+    local spell
+    if commaPos then
+      spell = string.sub(args, currentPos, commaPos - 1)
+      currentPos = commaPos + 1
+    else
+      spell = string.sub(args, currentPos)
+      currentPos = string.len(args) + 1
+    end
+    
+    -- Trim whitespace
+    spell = string.gsub(spell, "^%s*(.-)%s*$", "%1")
+    if spell ~= "" then
+      table.insert(spells, spell)
+    end
+  end
+  
+  if table.getn(spells) == 0 then
+    return nil
+  end
+  
+  -- Initialize state for this button if needed
+  if not GSE.CastSequenceState[buttonName] then
+    GSE.CastSequenceState[buttonName] = {
+      position = 1,
+      lastReset = GetTime()
+    }
+  end
+  
+  local state = GSE.CastSequenceState[buttonName]
+  
+  -- Check for reset conditions (simplified)
+  local shouldReset = false
+  if resetCondition then
+    -- Simple time-based reset check (could be enhanced for other conditions)
+    local currentTime = GetTime()
+    if currentTime - state.lastReset > 30 then -- 30 second timeout
+      shouldReset = true
+    end
+  end
+  
+  if shouldReset then
+    state.position = 1
+    state.lastReset = GetTime()
+  end
+  
+  -- Ensure position is within bounds
+  if state.position > table.getn(spells) then
+    state.position = 1
+  end
+  
+  local nextSpell = spells[state.position]
+  
+  -- Advance position for next call (but don't save it yet - only advance when macro is actually used)
+  -- We'll advance this when the macro button is clicked
+  
+  return nextSpell
 end
 
 function GSE.UpdateIcon(self, reset)
@@ -1054,17 +1190,29 @@ function GSE.UpdateIcon(self, reset)
   local commandline, foundSpell, notSpell = executionseq[step], false, ''
   for cmd, etc in gmatch(commandline or '', '/(%w+)%s+([^\n]+)') do
     if Statics.CastCmds[strlower(cmd)] or strlower(cmd) == "castsequence" then
-      local spell, target = SecureCmdOptionParse(etc)
-      if not reset then
-        GSE.TraceSequence(gsebutton, step, spell)
-      end
-      if spell then
-        if GetSpellInfo(spell) then
-          SetMacroSpell(gsebutton, spell, target)
+      if strlower(cmd) == "castsequence" then
+        -- Handle castsequence specially for dynamic icons
+        local nextSpell = GSE.GetNextCastSequenceSpell(gsebutton, etc)
+        if nextSpell and GetSpellInfo(nextSpell) then
+          SetMacroSpell(gsebutton, nextSpell)
           foundSpell = true
           break
-        elseif notSpell == '' then
-          notSpell = spell
+        elseif nextSpell and notSpell == '' then
+          notSpell = nextSpell
+        end
+      else
+        local spell, target = SecureCmdOptionParse(etc)
+        if not reset then
+          GSE.TraceSequence(gsebutton, step, spell)
+        end
+        if spell then
+          if GetSpellInfo(spell) then
+            SetMacroSpell(gsebutton, spell, target)
+            foundSpell = true
+            break
+          elseif notSpell == '' then
+            notSpell = spell
+          end
         end
       end
     end

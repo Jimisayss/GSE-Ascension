@@ -36,6 +36,11 @@ L[":|r Your current Specialisation is "] = true
 L["  The Alternative ClassID is "] = true
 L["GnomeSequencer-Enhanced loaded.|r  Type "] = true
 L["/gs help|r to get started."] = true
+L["New: Type "] = true
+L["|r to load sample macros for your class."] = true
+L["/gse cleancorrupted|r will remove corrupted sequences that cannot be edited or deleted through the interface."] = true
+L["/gse loadsamples|r will load documented sample macros for your current class."] = true
+L["/gs checkmacrosforerrors|r will loop through your macros and check for corrupt macro versions.  This will then show how to correct these issues."] = true
 L["Version="] = true
 L[":|r You cannot delete the only copy of a sequence."] = true
 L[" has been added as a new version and set to active.  Please review if this is as expected."] = true

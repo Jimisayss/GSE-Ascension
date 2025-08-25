@@ -150,11 +150,13 @@ function GSE.GUICreateEditorTabs()
       value="config"
     },
   }
-  for k,v in ipairs(editframe.Sequence.MacroVersions) do
-    local insline = {}
-    insline.text = tostring(k)
-    insline.value = tostring(k)
-    table.insert(tabl, insline)
+  if editframe.Sequence.MacroVersions and type(editframe.Sequence.MacroVersions) == "table" then
+    for k,v in ipairs(editframe.Sequence.MacroVersions) do
+      local insline = {}
+      insline.text = tostring(k)
+      insline.value = tostring(k)
+      table.insert(tabl, insline)
+    end
   end
   table.insert(tabl,   {
       text=L["New"],
@@ -263,8 +265,10 @@ end
 function GSE.GetVersionList()
   local tabl = {}
   classid = tonumber(classid)
-  for k,v in ipairs(editframe.Sequence.MacroVersions) do
-    tabl[tostring(k)] = tostring(k)
+  if editframe and editframe.Sequence and editframe.Sequence.MacroVersions and type(editframe.Sequence.MacroVersions) == "table" then
+    for k,v in ipairs(editframe.Sequence.MacroVersions) do
+      tabl[tostring(k)] = tostring(k)
+    end
   end
   return tabl
 end
@@ -654,8 +658,10 @@ function GSE:GUIDrawMacroEditor(container, version)
     spellbox:SetText(table.concat(editframe.Sequence.MacroVersions[version], "\n"))
   end
   spellbox:SetCallback("OnTextChanged", function (sel, object, value)
-    for k,v in ipairs(editframe.Sequence.MacroVersions[version]) do
-      editframe.Sequence.MacroVersions[version][k] = nil
+    if editframe.Sequence.MacroVersions[version] and type(editframe.Sequence.MacroVersions[version]) == "table" then
+      for k,v in ipairs(editframe.Sequence.MacroVersions[version]) do
+        editframe.Sequence.MacroVersions[version][k] = nil
+      end
     end
     local newpairs = GSE.SplitMeIntolines(value)
     for k,v in ipairs(newpairs) do
