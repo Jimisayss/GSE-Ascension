@@ -129,18 +129,15 @@ See https://github.com/TimothyLuke/GSE-Advanced-Macro-Compiler for the original 
 
 ## Support
 
-This revival is maintained by cerberus. For issues:
-1. Check the Issues tab on GitHub
-2. Provide clear reproduction steps
-3. Include any error messages
-4. Note your class/spec when reporting
+There is no support. Cerberus doesnt play Ascension and I'm only going to maintain this as I play new seasons. The official Modding discord for Ascension mods "SzylerAddons" actually despises GSE and doesn't want the addon discussed there. (They see it as harmful to the game rather than an accessibilty mod) So be respectful of their wishes and do not ask for support there.
 
 ## Acknowledgments
 
 - **TimothyLuke** - Original author of GSE (still maintains retail version)
 - **Gummed** - Created the WotLK 3.3.5a backport
 - **semlar** - Original GnomeSequencer creator
-- WoW addon community for keeping classic alive
+- **cerberus** - for Updating Gummed's backport.
+- WoW addon community for keeping Classic servers and World of Warcraft as a whole, alive.
 
 ---
 
