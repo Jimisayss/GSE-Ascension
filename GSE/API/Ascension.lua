@@ -13,7 +13,9 @@ function GSE.IsAscension()
 end
 
 function GSE.ResolveSpell(ref)
-  if not ref then return nil end
+  if not ref or ref == "" then
+    return nil
+  end
   if spellCache[ref] ~= nil then
     return spellCache[ref]
   end
