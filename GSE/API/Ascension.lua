@@ -9,6 +9,9 @@ function GSE.IsAscension()
       return true
     end
   end
+  if LibStub and LibStub:GetLibrary("LibAscensionConfig", true) then
+    return true
+  end
   return false
 end
 
@@ -17,13 +20,17 @@ function GSE.ResolveSpell(ref)
   if spellCache[ref] ~= nil then
     return spellCache[ref]
   end
-  local name, _, icon = GetSpellInfo(ref)
+  local lookup = ref
+  if type(ref) == "string" and tonumber(ref) then
+    lookup = tonumber(ref)
+  end
+  local name, _, icon, _, _, _, spellId = GetSpellInfo(lookup)
   if not name then
     GSE.Log("WARN", "Unknown spell " .. tostring(ref))
     spellCache[ref] = nil
     return nil
   end
-  local id = type(ref) == "number" and ref or select(7, GetSpellInfo(name))
+  local id = type(ref) == "number" and ref or spellId
   local result = {name = name, id = id, icon = icon}
   spellCache[ref] = result
   return result
