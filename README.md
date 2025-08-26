@@ -47,6 +47,7 @@ GSE (Gnome Sequencer Enhanced) is an advanced macro sequencer for World of Warcr
 - `/gse showspec` - Show your current specialization
 - `/gse loadsamples` - Load sample macros for your class
 - `/gse debug` - Toggle debug mode
+- `/gse version` - Display the current addon version
 
 ### Creating Your First Macro
 1. Type `/gse` to open the interface

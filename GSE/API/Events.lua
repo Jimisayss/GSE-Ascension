@@ -343,6 +343,7 @@ local function PrintGnomeHelp()
   GSE.Print(L["The command "] .. GSEOptions.CommandColour .. L["/gs checkmacrosforerrors|r will loop through your macros and check for corrupt macro versions.  This will then show how to correct these issues."], GNOME)
   GSE.Print(L["The command "] .. GSEOptions.CommandColour .. L["/gse cleancorrupted|r will remove corrupted sequences that cannot be edited or deleted through the interface."], GNOME)
   GSE.Print(L["The command "] .. GSEOptions.CommandColour .. L["/gse loadsamples|r will load documented sample macros for your current class."], GNOME)
+  GSE.Print(L["The command "] .. GSEOptions.CommandColour .. L["/gse version|r will display the current version of GSE."], GNOME)
 end
 
 GSE:RegisterChatCommand("gsse", "GSSlash")
@@ -397,6 +398,8 @@ function GSE:GSSlash(input)
     else
       GSE.Print(L["Sample macros are not available."], GNOME)
     end
+  elseif string.lower(input) == "version" then
+    GSE.Print(string.format(L["GSE Version: %s"], GSE.formatModVersion(GSE.VersionString)), GNOME)
   elseif string.lower(input) == "cleancorrupted" then
     GSE.CleanCorruptedSequences()
   else
