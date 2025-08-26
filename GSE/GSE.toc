@@ -3,7 +3,7 @@
 ## Notes: Ascension compatible macro sequencer.
 ## Author: TimothyLuke, Gummed, cerberus
 ## Version: 2204-wotlk
-## SavedVariables: GSEOptions GSELibrary
+## SavedVariables: GSEOptions GSELibrary GSETranslatorCache
 ## OptionalDeps: WeakAuras
 
 ## X-WoWI-ID: 23921
