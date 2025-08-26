@@ -16,7 +16,8 @@ if GetLocale() ~= "enUS" then
     local i = 0
     for k,v in pairs(GSE.TranslatorLanguageTables[Statics.TranslationKey]["enUS"]) do
       GSE.PrintDebugMessage(i.. " " .. k .. " " ..v)
-      local spellname = GetSpellInfo(k)
+      local info = GSE.ResolveSpell(k)
+      local spellname = info and info.name
       if spellname then
         GSE.TranslatorLanguageTables[Statics.TranslationKey][GetLocale()][k] = spellname
         GSE.TranslatorLanguageTables[Statics.TranslationHash][GetLocale()][spellname] = k
@@ -246,7 +247,9 @@ function GSE.TranslateSpell(str, fromLocale, toLocale, cleanNewLines)
         found = true
       else
         -- Project Ascension compatibility: Check if spell exists via GetSpellInfo before marking as unknown
-        local spellName, rank, icon = GetSpellInfo(etc)
+        local info = GSE.ResolveSpell(etc)
+        local spellName = info and info.name
+        local icon = info and info.icon
         if spellName then
           -- Spell exists in game client (likely custom Ascension spell), allow it through
           GSE.PrintDebugMessage("Found custom/Ascension spell via GetSpellInfo: " .. etc, GNOME)
@@ -342,12 +345,15 @@ function GSE.ReportUnfoundSpells()
   GSEOptions.UnfoundSpellIDs = {}
 
   for _,spell in pairs(GSEOptions.UnfoundSpells) do
-    GSEOptions.UnfoundSpellIDs[spell] = GetSpellInfo(spell)
+    local info = GSE.ResolveSpell(spell)
+    GSEOptions.UnfoundSpellIDs[spell] = info and info.name
   end
 
   GSEOptions.ErroneousSpellID = {}
   for k,v in pairs(GSE.TranslatorLanguageTables[Statics.TranslationHash]["enUS"]) do
-    local name, rank, icon, castingTime, minRange, maxRange, spellID = GetSpellInfo(v)
+    local info = GSE.ResolveSpell(v)
+    local name = info and info.name
+    local spellID = info and info.id
     if GSE.isEmpty(spellID) then
       GSEOptions.ErroneousSpellID[v] = true
     end

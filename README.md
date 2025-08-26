@@ -2,6 +2,8 @@
 
 A revival and restoration of Gnome Sequencer Enhanced for World of Warcraft 3.3.5a (Wrath of the Lich King).
 
+This branch provides a stable Ascension port with API shims, nil-safe helpers and cached spell resolution for custom abilities.
+
 ## About
 
 Almost all of this is the same as Cerberus's original GSE Backport update. I simply took his and Gummed's legwork and then added a few fixes and added support for use with the Project Ascension client as the original implementation didnt work properly, throwing errors in the ascension client, and had no means to load custom spells and abilities that werent properly registered in the default client.
