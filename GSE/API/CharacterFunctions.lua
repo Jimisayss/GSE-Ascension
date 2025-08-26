@@ -192,9 +192,35 @@ for k,v in pairs(Statics.wotlkSpecIDList) do
 end
 
 
+function GSE.GetDynamicSpecList()
+  if not GSE.DynamicSpecList then
+    if GSE.IsAscension() then
+      local specs = {[0] = "Global"}
+      local asc = LibStub and LibStub:GetLibrary("LibAscensionConfig", true)
+      if asc and asc.GetArchetypes then
+        for id, info in pairs(asc:GetArchetypes()) do
+          specs[id] = info.name or info
+        end
+      end
+      GSE.DynamicSpecList = specs
+    else
+      GSE.DynamicSpecList = Statics.wotlkSpecIDList
+    end
+  end
+  return GSE.DynamicSpecList
+end
+
+function GSE.GetSpecIdHashList()
+  local hash = {}
+  for k,v in pairs(GSE.GetDynamicSpecList()) do
+    hash[v] = k
+  end
+  return hash
+end
+
 function GSE.GetSpecNames()
-  local keyset={}
-  for k,v in pairs(Statics.wotlkSpecIDList) do
+  local keyset = {}
+  for _,v in pairs(GSE.GetDynamicSpecList()) do
     keyset[v] = v
   end
   return keyset

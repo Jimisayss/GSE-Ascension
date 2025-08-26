@@ -402,6 +402,9 @@ function GSE:GSSlash(input)
     GSE.Print(string.format(L["GSE Version: %s"], GSE.formatModVersion(GSE.VersionString)), GNOME)
   elseif string.lower(input) == "cleancorrupted" then
     GSE.CleanCorruptedSequences()
+  elseif string.lower(input) == "cleartranslatorcache" then
+    GSE.ClearTranslatorCache()
+    GSE.Print("Translator cache cleared", GNOME)
   else
     GSE.GUIShowViewer()
   end
@@ -431,18 +434,15 @@ end
 
 
 function GSE:ProcessOOCQueue()
-  if GSE.isEmpty(GSE.OOCQueue) then
-    return
-  end
-  
-  for k,v in ipairs(GSE.OOCQueue) do
-    if not InCombatLockdown() then
+  while not InCombatLockdown() and #GSE.OOCQueue > 0 do
+    local v = table.remove(GSE.OOCQueue, 1)
+    if v then
       local success, err = pcall(function()
-        if GSE.isEmpty(v) or GSE.isEmpty(v.action) then
+        if GSE.isEmpty(v.action) then
           GSE.PrintDebugMessage("Invalid OOC Queue entry", "Events")
           return
         end
-        
+
         if v.action == "UpdateSequence" then
           GSE.OOCUpdateSequence(v.name, v.macroversion)
         elseif v.action == "Save" then
@@ -452,15 +452,14 @@ function GSE:ProcessOOCQueue()
             GSE.Print("ERROR: Replace action missing classid or sequencename")
             return
           end
-          
+
           if GSE.isEmpty(GSELibrary[v.classid]) then
             GSELibrary[v.classid] = {}
           end
-          
-          -- Always save the sequence directly
+
           GSELibrary[v.classid][v.sequencename] = v.sequence
           GSE.Print("Saved sequence: " .. v.sequencename .. " for class " .. v.classid)
-          
+
           if not GSE.isEmpty(v.sequence) and not GSE.isEmpty(v.sequence.MacroVersions) then
             local activeVersion = v.sequence.Default or 1
             if v.sequence.MacroVersions[activeVersion] then
@@ -473,13 +472,15 @@ function GSE:ProcessOOCQueue()
           GSE.OOCCheckMacroCreated(v.sequencename, v.create)
         end
       end)
-      
+
       if not success then
         GSE.PrintDebugMessage("Error processing OOC Queue item: " .. tostring(err), "Events")
       end
-      
-      GSE.OOCQueue[k] = nil
     end
+  end
+
+  if #GSE.OOCQueue == 0 then
+    GSE.StopOOCTimer()
   end
 end
 
