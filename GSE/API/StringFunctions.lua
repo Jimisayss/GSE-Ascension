@@ -34,6 +34,9 @@ end
 function GSE.Ltrim(s)
   return (s:gsub("^%s*", ""))
 end
+function GSE.SafeUpper(v)
+  return type(v) == "string" and string.upper(v) or v
+end
 
 --- remove WoW Text Markup from a sequence
 function GSE.UnEscapeSequence(sequence)

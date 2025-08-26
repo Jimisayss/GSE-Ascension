@@ -1193,11 +1193,12 @@ function GSE.UpdateIcon(self, reset)
       if strlower(cmd) == "castsequence" then
         -- Handle castsequence specially for dynamic icons
         local nextSpell = GSE.GetNextCastSequenceSpell(gsebutton, etc)
-        if nextSpell and GetSpellInfo(nextSpell) then
-          SetMacroSpell(gsebutton, nextSpell)
+        local info = GSE.ResolveSpell(nextSpell)
+        if nextSpell and info then
+          SetMacroSpell(gsebutton, info.name or info.id)
           foundSpell = true
           break
-        elseif nextSpell and notSpell == '' then
+        elseif nextSpell and not info and notSpell == '' then
           notSpell = nextSpell
         end
       else
@@ -1206,11 +1207,12 @@ function GSE.UpdateIcon(self, reset)
           GSE.TraceSequence(gsebutton, step, spell)
         end
         if spell then
-          if GetSpellInfo(spell) then
-            SetMacroSpell(gsebutton, spell, target)
+          local info = GSE.ResolveSpell(spell)
+          if info then
+            SetMacroSpell(gsebutton, info.name or info.id, target)
             foundSpell = true
             break
-          elseif notSpell == '' then
+          elseif not info and notSpell == '' then
             notSpell = spell
           end
         end
