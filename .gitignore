@@ -33,3 +33,8 @@ Thumbs.db
 # Internal development documentation
 CLAUDE.md
 FUTURE_FEATURES.md
+
+# Build artifacts
+/dist/
+*.zip
+*.tar.gz

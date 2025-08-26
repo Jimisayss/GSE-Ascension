@@ -1,6 +1,6 @@
 ## Interface: 30300
-## Title: GSE
-## Notes: Allows you to execute a sequence of macros without stopping on unusable spells.
+## Title: GSE - Ascension
+## Notes: Ascension compatible macro sequencer.
 ## Author: TimothyLuke, Gummed, cerberus
 ## Version: 2204-wotlk
 ## SavedVariables: GSEOptions GSELibrary
@@ -34,6 +34,7 @@ Lib\AceSerializer-3.0\AceSerializer-3.0.xml
 Lib\AceHook-3.0\AceHook-3.0.xml
 Lib\LibDBIcon-1.0\LibDBIcon-1.0.lua
 Lib\LibCompress\lib.xml
+Lib\LibHealComm-3.0\LibHealComm-3.0.lua
 #Lib\LibStub\LibStub.lua -- Already loaded above
 #Lib\CallbackHandler-1.0\CallbackHandler-1.0.xml -- Already loaded above
 Lib\LibDataBroker-1.1\LibDataBroker-1.1.lua
@@ -55,6 +56,8 @@ Localization\ModL_zhTW.lua
 # Startup
 API\Init.lua
 API\Statics.lua
+API\Shims.lua
+API\Ascension.lua
 API\InitialOptions.lua
 
 # Spells Language Strings

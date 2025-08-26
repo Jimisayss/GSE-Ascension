@@ -8,6 +8,26 @@ local L = GSE.L
 local Statics = GSE.Static
 
 local GCD, GCD_Update_Timer
+GSE.EventHandlers = GSE.EventHandlers or {}
+
+function GSE.RegisterInternalEvent(evt, handler)
+  if type(evt) ~= "string" or type(handler) ~= "function" then return end
+  GSE.EventHandlers[evt] = GSE.EventHandlers[evt] or {}
+  table.insert(GSE.EventHandlers[evt], handler)
+end
+
+function GSE.DispatchInternalEvent(evt, ...)
+  local handlers = GSE.EventHandlers[evt]
+  if handlers then
+    for _,h in ipairs(handlers) do
+      local ok, err = pcall(h, evt, ...)
+      if not ok then
+        GSE.Log("ERROR", err, evt)
+      end
+    end
+  end
+end
+
 
 
 --- This function is used to debug a sequence and trace its execution.
