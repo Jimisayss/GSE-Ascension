@@ -291,7 +291,8 @@ function GSE.ImportSequence(importStr, legacy, createicon)
       success = true
     end
   else
-    GSE.Print (err, GNOME)
+    GSE.Print(L["Macro unable to be imported."], GNOME)
+    GSE.PrintDebugMessage(err, "Storage")
     returnmessage = err
 
   end
