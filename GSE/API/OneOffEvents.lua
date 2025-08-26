@@ -22,13 +22,15 @@ function GSE.UpdateFrom735to801()
         -- if next(GSELibrary) == nil then
         for k, v in ipairs(GSE.Library) do
             for i, j in pairs(v) do
-                -- i = string.upper(i)
-                GSE.Library[k][i] = nil
-                GSEStorage[k][i] = nil
-                GSEStorage[k][string.upper(i)] = GSE.EncodeMessage({string.upper(i), j})
-                GSE.Library[k][string.upper(i)] = j
-                if (v == GSE.GetCurrentClassID() or v == 0) then
-                    GSE.CheckMacroCreated(string.upper(i), true)
+                local upper = GSE.SafeUpper(i)
+                if upper then
+                    GSE.Library[k][i] = nil
+                    GSEStorage[k][i] = nil
+                    GSEStorage[k][upper] = GSE.EncodeMessage({upper, j})
+                    GSE.Library[k][upper] = j
+                    if (v == GSE.GetCurrentClassID() or v == 0) then
+                        GSE.CheckMacroCreated(upper, true)
+                    end
                 end
             end
         end

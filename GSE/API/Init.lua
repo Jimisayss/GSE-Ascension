@@ -15,6 +15,18 @@ GSE.isNewFirstTimeCreated = false
 local L = GSE.L
 local Statics = GSE.Static
 local GNOME = "GSE"
+local logLevels = { ERROR = 1, WARN = 2, INFO = 3, DEBUG = 4 }
+GSEOptions = GSEOptions or {}
+GSEOptions.LogLevel = GSEOptions.LogLevel or logLevels.INFO
+
+function GSE.Log(level, message, context)
+  local lvl = logLevels[level] or logLevels.INFO
+  if lvl > (GSEOptions.LogLevel or logLevels.INFO) then return end
+  local prefix = level
+  if context then prefix = prefix .. ' [' .. context .. ']' end
+  GSE.Print(prefix .. ': ' .. tostring(message))
+end
+
 
 -- Initialisation Functions
 
