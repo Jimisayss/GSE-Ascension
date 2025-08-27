@@ -355,10 +355,12 @@ GSE:RegisterChatCommand("gse", "GSSlash")
 --- Handle slash commands
 function GSE:GSSlash(input)
   if string.lower(input) == "showspec" then
-    local currentSpec = GSE.GetCurrentSpecID()
     local currentSpecID, specname, specicon = GSE.GetCurrentSpecID()
-   -- local _, specname, specdescription, specicon, _, specrole, specclass = GetSpecializationInfoByID(currentSpecID)
-    GSE.Print(L["Your current Specialisation is "] .. currentSpecID .. ':' .. specname .. L["  The Alternative ClassID is "] .. currentclassId, GNOME)
+    if currentSpecID == 0 then
+      GSE.Print(L["You are on a classless server. There is no spec to show."], GNOME)
+    else
+      GSE.Print(L["Your current Specialisation is "] .. currentSpecID .. ':' .. specname .. L["  The Alternative ClassID is "] .. currentclassId, GNOME)
+    end
   elseif string.lower(input) == "help" then
     PrintGnomeHelp()
   elseif string.lower(input) == "cleanorphans" or string.lower(input) == "clean" then

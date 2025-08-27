@@ -362,7 +362,13 @@ function GSE.GUIShowViewer()
   local cclassid = -1
   for k,v in GSE.pairsByKeys(names) do
     local elements = GSE.split(k, ",")
-    local tclassid = tonumber(elements[1])
+    local tclassid
+    if elements[1] == "GLOBAL" then
+      tclassid = "GLOBAL"
+    else
+      tclassid = tonumber(elements[1])
+    end
+
     if tclassid ~= cclassid then
       cclassid = tclassid
       local fontName, fontHeight, fontFlags = GameFontNormal:GetFont()
@@ -371,7 +377,11 @@ function GSE.GUIShowViewer()
       sectionspacer1:SetFont(fontName, 4 , fontFlags)
       viewframe.ScrollContainer:AddChild(sectionspacer1)
       local sectionheader = AceGUI:Create("Label")
-      sectionheader:SetText(GSE.GetDynamicSpecList()[cclassid])
+      if cclassid == "GLOBAL" then
+        sectionheader:SetText(L["Global"])
+      else
+        sectionheader:SetText(GSE.GetDynamicSpecList()[cclassid])
+      end
       sectionheader:SetFont(fontName, fontHeight + 6 , fontFlags)
       sectionheader:SetColor(GSE.GUIGetColour(GSEOptions.COMMENT))
       viewframe.ScrollContainer:AddChild(sectionheader)
