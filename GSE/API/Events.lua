@@ -434,7 +434,8 @@ end
 
 
 function GSE:ProcessOOCQueue()
-  while not InCombatLockdown() and #GSE.OOCQueue > 0 do
+  local processed = 0
+  while not InCombatLockdown() and #GSE.OOCQueue > 0 and processed < MAX_OOC_QUEUE_ITEMS_PER_TICK do
     local v = table.remove(GSE.OOCQueue, 1)
     if v then
       local success, err = pcall(function()
