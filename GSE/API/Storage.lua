@@ -22,7 +22,7 @@ end
 
 function GSE.CloneSequence(sequence, keepcomments)
   if GSE.isEmpty(sequence) then
-    GSE.PrintDebugMessage("CloneSequence: sequence is nil or empty", "Storage")
+    GSE.Log("DEBUG", "CloneSequence: sequence is nil or empty", "Storage")
     return nil
   end
   
@@ -56,13 +56,13 @@ function GSE.CloneMacroVersion(macroversion, keepcomments)
       if not GSE.isEmpty(keepcomments) then
         table.insert(retseq, v)
       else
-        GSE.PrintDebugMessage(string.format("comment found %s", v), "Storage")
+        GSE.Log("DEBUG", string.format("comment found %s", v), "Storage")
       end
     end
   end
 
   for k,v in pairs(macroversion) do
-    GSE.PrintDebugMessage(string.format("Processing Key: %s KeyType: %s valuetype: %s", k, type(k), type(v)), "Storage")
+    GSE.Log("DEBUG", string.format("Processing Key: %s KeyType: %s valuetype: %s", k, type(k), type(v)), "Storage")
     if type(k) == "string" and type(v) == "string" then
       if GSE.isEmpty(string.find(v, '--', 1, true)) then
         retseq[k] = v
@@ -70,7 +70,7 @@ function GSE.CloneMacroVersion(macroversion, keepcomments)
         if not GSE.isEmpty(keepcomments) then
           table.insert(retseq, v)
         else
-          GSE.PrintDebugMessage(string.format("comment found %s", v), "Storage")
+          GSE.Log("DEBUG", string.format("comment found %s", v), "Storage")
         end
       end
     elseif type(k) == "string" and type(v) == "boolean" then
@@ -86,7 +86,7 @@ function GSE.CloneMacroVersion(macroversion, keepcomments)
           if not GSE.isEmpty(keepcomments) then
             table.insert(retseq[k], x)
           else
-            GSE.PrintDebugMessage(string.format("comment found %s", x), "Storage")
+            GSE.Log("DEBUG", string.format("comment found %s", x), "Storage")
           end
         end
       end
@@ -104,7 +104,7 @@ function GSE.AddSequenceToCollection(sequenceName, sequence, classid)
   vals.sequencename = sequenceName
   vals.sequence = sequence
   vals.classid = classid
-  table.insert(GSE.OOCQueue, vals)
+  GSE.CombatQueue:QueueAction(vals)
 end
 --- Add a sequence to the library
 function GSE.OOCAddSequenceToCollection(sequenceName, sequence, classid)
@@ -124,6 +124,7 @@ function GSE.OOCAddSequenceToCollection(sequenceName, sequence, classid)
     classid = tonumber(GSE.GetClassIDforSpec(sequence.SpecID))
   elseif GSE.isEmpty(sequence.SpecID) then
 	local sidy=GSE.GetCurrentSpecID()
+    GSE.Log("DEBUG", "Determined SpecID for new sequence: " .. tostring(sidy), "Storage")
     sequence.SpecID = sidy
     classid = tonumber(GSE.GetClassIDforSpec(sequence.SpecID))
   end
@@ -136,20 +137,20 @@ function GSE.OOCAddSequenceToCollection(sequenceName, sequence, classid)
   if found then
     if GSE.isEmpty(GSELibrary[classid][sequenceName].ManualIntervention) then --- Added by me
 		  -- Macro hasnt been touched.
-		  GSE.PrintDebugMessage(L["No changes were made to "].. sequenceName, "Storage")
+		  GSE.Log("DEBUG", L["No changes were made to "].. sequenceName, "Storage")
 		
 		-- check if source the same.  If so ignore
 		if sequence.MacroVersions and GSELibrary[classid] and GSELibrary[classid][sequenceName] and GSELibrary[classid][sequenceName].MacroVersions then
 		  for k,v in ipairs(sequence.MacroVersions) do
 		    for i, j in ipairs(GSELibrary[classid][sequenceName].MacroVersions) do
 			if GSE.CompareSequence(v,j) then
-			  GSE.PrintDebugMessage("Macro Version already exists", "Storage")
+			  GSE.Log("DEBUG", "Macro Version already exists", "Storage")
 			else
 			  GSE.Print (string.format(L["A new version of %s has been added."], sequenceName), GNOME)
-			  GSE.PrintDebugMessage("adding ".. k, "Storage")
+			  GSE.Log("DEBUG", "adding ".. k, "Storage")
 			  table.insert(GSELibrary[classid][sequenceName].MacroVersions, v)
 
-			  GSE.PrintDebugMessage("Finished colliding entry entry", "Storage")
+			  GSE.Log("DEBUG", "Finished colliding entry entry", "Storage")
 			end
 		    end
 		  end
@@ -230,7 +231,7 @@ function GSE.CreateMacroIcon(sequenceName, icon, forceglobalstub)
   local numAccountMacros, numCharacterMacros = GetNumMacros()
   if sequenceIndex > 0 then
     -- Sequence exists do nothing
-    GSE.PrintDebugMessage("Moving on - macro for " .. sequenceName .. " already exists.", GNOME)
+    GSE.Log("DEBUG", "Moving on - macro for " .. sequenceName .. " already exists.", GNOME)
   else
     -- Create Sequence as a player sequence
     if numCharacterMacros >= MAX_CHARACTER_MACROS - 1 and not GSEOptions.overflowPersonalMacros and not forceglobalstub then
@@ -253,7 +254,7 @@ function GSE.ImportSerialisedSequence(importstring, createicon)
     cell1type = type(actiontable[1])
     cell2type = type(actiontable[2])
   end
-  GSE.PrintDebugMessage (string.format("Decomsuccess: %s  tablerows: %s   type cell1 %s cell2 %s" , tostring(decompresssuccess), tablerows, cell1type, cell2type), Statics.SourceTransmission)
+  GSE.Log("DEBUG", string.format("Decomsuccess: %s  tablerows: %s   type cell1 %s cell2 %s" , tostring(decompresssuccess), tablerows, cell1type, cell2type), Statics.SourceTransmission)
   if (decompresssuccess) and (tablerows == 2) and (cell1type == "string") and (cell2type == "table") then
     GSE.AddSequenceToCollection(actiontable[1], actiontable[2])
     if createicon then
@@ -275,7 +276,7 @@ function GSE.ImportSequence(importStr, legacy, createicon)
   return Sequences
   ]===]
 
-  GSE.PrintDebugMessage (functiondefinition, "Storage")
+  GSE.Log("DEBUG", functiondefinition, "Storage")
   local fake_globals = setmetatable({
     Sequences = {},
     }, {__index = _G})
@@ -305,7 +306,7 @@ function GSE.ImportSequence(importStr, legacy, createicon)
     end
   else
     GSE.Print(L["Macro unable to be imported."], GNOME)
-    GSE.PrintDebugMessage(err, "Storage")
+    GSE.Log("DEBUG", err, "Storage")
     returnmessage = err
 
   end
@@ -313,7 +314,7 @@ function GSE.ImportSequence(importStr, legacy, createicon)
 end
 
 function GSE.ReloadSequences()
-  GSE.PrintDebugMessage("Reloading Sequences")
+  GSE.Log("DEBUG", "Reloading Sequences")
   for name, sequence in pairs(GSELibrary[GSE.GetCurrentClassID()]) do
     GSE.UpdateSequence(name, sequence.MacroVersions[GSE.GetActiveSequenceVersion(name)])
   end
@@ -339,7 +340,7 @@ function GSE.IsLoopSequence(sequence)
     if type(sequence.PreMacro) == "table" then
       if table.getn(sequence.PreMacro) > 0 then
         loopcheck = true
-        GSE.PrintDebugMessage("Setting Loop Check True due to PreMacro", "Storage")
+        GSE.Log("DEBUG", "Setting Loop Check True due to PreMacro", "Storage")
       end
     end
   end
@@ -347,13 +348,13 @@ function GSE.IsLoopSequence(sequence)
     if type(sequence.PostMacro) == "table" then
       if table.getn(sequence.PostMacro) > 0 then
         loopcheck = true
-        GSE.PrintDebugMessage("Setting Loop Check True due to PostMacro", "Storage")
+        GSE.Log("DEBUG", "Setting Loop Check True due to PostMacro", "Storage")
       end
     end
   end
   if not GSE.isEmpty(sequence.LoopLimit) then
     loopcheck = true
-    GSE.PrintDebugMessage("Setting Loop Check True due to LoopLimit", "Storage")
+    GSE.Log("DEBUG", "Setting Loop Check True due to LoopLimit", "Storage")
   end
   return loopcheck
 end
@@ -363,7 +364,7 @@ end
 function GSE.ExportSequence(sequence, sequenceName, compact)
   local returnVal = ""
   if GSEOptions.UseVerboseFormat and GSE.isEmpty(compact) then
-    GSE.PrintDebugMessage("ExportSequence Sequence Name: " .. sequenceName, "Storage")
+    GSE.Log("DEBUG", "ExportSequence Sequence Name: " .. sequenceName, "Storage")
     local disabledseq = ""
     local sequencemeta = "  Talents = \"" .. GSEOptions.INDENT .. (GSE.isEmpty(sequence.Talents) and "?,?,?,?,?,?,?" or sequence.Talents) .. Statics.StringReset .. "\",\n"
     if not GSE.isEmpty(sequence.Helplink) then
@@ -501,23 +502,23 @@ end
 function GSE.FixSequence(sequence)
   if GSE.isEmpty(sequence.PreMacro) then
     sequence.PreMacro = {}
-    GSE.PrintDebugMessage("Empty PreMacro", GNOME)
+    GSE.Log("DEBUG", "Empty PreMacro", GNOME)
   end
   if GSE.isEmpty(sequence.PostMacro) then
     sequence.PostMacro = {}
-    GSE.PrintDebugMessage("Empty PostMacro", GNOME)
+    GSE.Log("DEBUG", "Empty PostMacro", GNOME)
   end
   if GSE.isEmpty(sequence.KeyPress) then
     sequence.KeyPress = {}
-    GSE.PrintDebugMessage("Empty KeyPress", GNOME)
+    GSE.Log("DEBUG", "Empty KeyPress", GNOME)
   end
   if GSE.isEmpty(sequence.KeyRelease) then
     sequence.KeyRelease = {}
-    GSE.PrintDebugMessage("Empty KeyRelease", GNOME)
+    GSE.Log("DEBUG", "Empty KeyRelease", GNOME)
   end
   if GSE.isEmpty(sequence.StepFunction) then
     sequence.StepFunction = Statics.Sequential
-    GSE.PrintDebugMessage("Empty StepFunction", GNOME)
+    GSE.Log("DEBUG", "Empty StepFunction", GNOME)
   end
   if not GSE.isEmpty(sequence.Target) then
     sequence.Target = nil
@@ -577,7 +578,7 @@ function GSE.UpdateSequence(name, sequence)
   vals.action = "UpdateSequence"
   vals.name = name
   vals.macroversion = sequence
-  table.insert(GSE.OOCQueue, vals)
+  GSE.CombatQueue:QueueAction(vals)
 end
 
 
@@ -636,9 +637,9 @@ function GSE.OOCUpdateSequence(name,sequence)
     gsebutton:Execute('name, macros = self:GetName(), newtable([=======[' .. strjoin(']=======],[=======[', unpack(executionseq)) .. ']=======])')
     gsebutton:SetAttribute("step",1)
     gsebutton:SetAttribute('KeyPress',table.concat(GSE.PrepareKeyPress(tempseq), "\n") or '' .. '\n')
-    GSE.PrintDebugMessage("GSUpdateSequence KeyPress updated to: " .. gsebutton:GetAttribute('KeyPress'))
+    GSE.Log("DEBUG", "GSUpdateSequence KeyPress updated to: " .. gsebutton:GetAttribute('KeyPress'))
     gsebutton:SetAttribute('KeyRelease',table.concat(GSE.PrepareKeyRelease(tempseq), "\n") or '' .. '\n')
-    GSE.PrintDebugMessage("GSUpdateSequence KeyRelease updated to: " .. gsebutton:GetAttribute('KeyRelease'))
+    GSE.Log("DEBUG", "GSUpdateSequence KeyRelease updated to: " .. gsebutton:GetAttribute('KeyRelease'))
     if existingbutton then
       gsebutton:UnwrapScript(gsebutton,'OnClick')
     end
@@ -708,45 +709,45 @@ function GSE.CompareSequence(seq1,seq2)
   local steps2 = table.concat(seq2, "")
 
   if seq1.SpecID == seq2.SpecID then
-    GSE.PrintDebugMessage("Matching specID", GNOME)
+    GSE.Log("DEBUG", "Matching specID", GNOME)
   else
-    GSE.PrintDebugMessage("Different specID", GNOME)
+    GSE.Log("DEBUG", "Different specID", GNOME)
     match = false
   end
   if seq1.StepFunction == seq2.StepFunction then
-    GSE.PrintDebugMessage("Matching StepFunction", GNOME)
+    GSE.Log("DEBUG", "Matching StepFunction", GNOME)
   else
-    GSE.PrintDebugMessage("Different StepFunction", GNOME)
+    GSE.Log("DEBUG", "Different StepFunction", GNOME)
     match = false
   end
   if table.concat(seq1.KeyPress, "") ==  table.concat(seq2.KeyPress, "") then
-    GSE.PrintDebugMessage("Matching KeyPress", GNOME)
+    GSE.Log("DEBUG", "Matching KeyPress", GNOME)
   else
-    GSE.PrintDebugMessage("Different KeyPress", GNOME)
+    GSE.Log("DEBUG", "Different KeyPress", GNOME)
     match = false
   end
   if steps1 == steps2 then
-    GSE.PrintDebugMessage("Same Sequence Steps", GNOME)
+    GSE.Log("DEBUG", "Same Sequence Steps", GNOME)
   else
-    GSE.PrintDebugMessage("Different Sequence Steps", GNOME)
+    GSE.Log("DEBUG", "Different Sequence Steps", GNOME)
     match = false
   end
   if table.concat(seq1.KeyRelease) == table.concat(seq2.KeyRelease) then
-    GSE.PrintDebugMessage("Matching KeyRelease", GNOME)
+    GSE.Log("DEBUG", "Matching KeyRelease", GNOME)
   else
-    GSE.PrintDebugMessage("Different KeyRelease", GNOME)
+    GSE.Log("DEBUG", "Different KeyRelease", GNOME)
     match = false
   end
   if table.concat(seq1.PreMacro) == table.concat(seq2.PreMacro) then
-    GSE.PrintDebugMessage("Matching PreMacro", GNOME)
+    GSE.Log("DEBUG", "Matching PreMacro", GNOME)
   else
-    GSE.PrintDebugMessage("Different PreMacro", GNOME)
+    GSE.Log("DEBUG", "Different PreMacro", GNOME)
     match = false
   end
   if table.concat(seq1.PostMacro) == table.concat(seq2.PostMacro) then
-    GSE.PrintDebugMessage("Matching PostMacro", GNOME)
+    GSE.Log("DEBUG", "Matching PostMacro", GNOME)
   else
-    GSE.PrintDebugMessage("Different PostMacro", GNOME)
+    GSE.Log("DEBUG", "Different PostMacro", GNOME)
     match = false
   end
 
@@ -786,19 +787,19 @@ function GSE.compareValues(a, b, description)
   local match = true
   if not GSE.isEmpty(a) then
     if GSE.isEmpty(b) then
-      GSE.PrintDebugMessage(description .." in Sequence 1 but not in Sequence 2", GNOME)
+      GSE.Log("DEBUG", description .." in Sequence 1 but not in Sequence 2", GNOME)
       match = false
     else
       if a == b then
-        GSE.PrintDebugMessage("Matching " .. description, GNOME)
+        GSE.Log("DEBUG", "Matching " .. description, GNOME)
       else
-        GSE.PrintDebugMessage("Different  ".. description .. " Values", GNOME)
+        GSE.Log("DEBUG", "Different  ".. description .. " Values", GNOME)
         match = false
       end
     end
   else
     if not GSE.isEmpty(b) then
-      GSE.PrintDebugMessage(description .. " in Sequence 2 but not in Sequence 1", GNOME)
+      GSE.Log("DEBUG", description .. " in Sequence 2 but not in Sequence 1", GNOME)
       match = false
     end
   end
@@ -828,12 +829,12 @@ function GSE.UpdateMacroString()
     if not GSE.isEmpty(mname) then
       if GSELibrary[GSE.GetCurrentClassID()] and not GSE.isEmpty(GSELibrary[GSE.GetCurrentClassID()][mname]) then
         EditMacro(macid, nil, nil,  GSE.CreateMacroString(mname))
-        GSE.PrintDebugMessage(string.format("Updating macro %s to %s", mname, GSE.CreateMacroString(mname)))
+        GSE.Log("DEBUG", string.format("Updating macro %s to %s", mname, GSE.CreateMacroString(mname)))
       end
       if not GSE.isEmpty(GSELibrary[0]) then
         if not GSE.isEmpty(GSELibrary[0][mname]) then
           EditMacro(macid, nil, nil,  GSE.CreateMacroString(mname))
-          GSE.PrintDebugMessage(string.format("Updating macro %s to %s", mname, GSE.CreateMacroString(mname)))
+          GSE.Log("DEBUG", string.format("Updating macro %s to %s", mname, GSE.CreateMacroString(mname)))
         end
       end
     end
@@ -847,7 +848,7 @@ function GSE.CheckMacroCreated(SequenceName, create)
   vals.action = "CheckMacroCreated"
   vals.sequencename = SequenceName
   vals.create = create
-  table.insert(GSE.OOCQueue, vals)
+  GSE.CombatQueue:QueueAction(vals)
 end
 
 --- Check if a macro has been created and if the create flag is true and the macro hasnt been created then create it.
@@ -981,13 +982,13 @@ function GSE.GetMacroIcon(classid, sequenceIndex)
   end
   
   classid = tonumber(classid)
-  GSE.PrintDebugMessage("sequenceIndex: " .. (GSE.isEmpty(sequenceIndex) and "No value" or sequenceIndex), GNOME)
+  GSE.Log("DEBUG", "sequenceIndex: " .. (GSE.isEmpty(sequenceIndex) and "No value" or sequenceIndex), GNOME)
   local macindex = GetMacroIndexByName(sequenceIndex)
   local a, iconid, c =  GetMacroInfo(macindex)
   if not GSE.isEmpty(a) then
-    GSE.PrintDebugMessage("Macro Found " .. a .. " with iconid " .. (GSE.isEmpty(iconid) and "of no value" or iconid) .. " " .. (GSE.isEmpty(iconid) and L["with no body"] or c), GNOME)
+    GSE.Log("DEBUG", "Macro Found " .. a .. " with iconid " .. (GSE.isEmpty(iconid) and "of no value" or iconid) .. " " .. (GSE.isEmpty(iconid) and L["with no body"] or c), GNOME)
   else
-    GSE.PrintDebugMessage("No Macro Found. Possibly different spec for Sequence " .. sequenceIndex , GNOME)
+    GSE.Log("DEBUG", "No Macro Found. Possibly different spec for Sequence " .. sequenceIndex , GNOME)
     return GSEOptions.DefaultDisabledMacroIcon or "INV_MISC_QUESTIONMARK"
   end
 
@@ -998,13 +999,13 @@ function GSE.GetMacroIcon(classid, sequenceIndex)
   local sequence = GSELibrary[classid][sequenceIndex]
   if(sequence==nil) then return "INV_MISC_QUESTIONMARK" end
   if GSE.isEmpty(sequence.Icon) and GSE.isEmpty(iconid) then
-    GSE.PrintDebugMessage("SequenceSpecID: " .. sequence.SpecID, GNOME)
+    GSE.Log("DEBUG", "SequenceSpecID: " .. sequence.SpecID, GNOME)
     if sequence.SpecID == 0 then
       return "INV_MISC_QUESTIONMARK"
     else
      -- local _, _, _, specicon, _, _, _ = GetSpecializationInfoByID((GSE.isEmpty(sequence.SpecID) and GSE.GetCurrentSpecID() or sequence.SpecID))
 	 local specicon
-      GSE.PrintDebugMessage("No Sequence Icon setting to " .. strsub(specicon, 17), GNOME)
+      GSE.Log("DEBUG", "No Sequence Icon setting to " .. strsub(specicon, 17), GNOME)
       return strsub(specicon, 17)
     end
   elseif GSE.isEmpty(iconid) and not GSE.isEmpty(sequence.Icon) then
@@ -1197,13 +1198,13 @@ function GSE.UpdateIcon(self, reset)
   
   local gsebutton = self:GetName()
   if GSE.isEmpty(GSE.SequencesExec) or GSE.isEmpty(GSE.SequencesExec[gsebutton]) then
-    GSE.PrintDebugMessage("UpdateIcon: No execution sequence found for " .. gsebutton, "Storage")
+    GSE.Log("DEBUG", "UpdateIcon: No execution sequence found for " .. gsebutton, "Storage")
     return
   end
   
   local executionseq = GSE.SequencesExec[gsebutton]
   if GSE.isEmpty(executionseq[step]) then
-    GSE.PrintDebugMessage("UpdateIcon: No command at step " .. step .. " for " .. gsebutton, "Storage")
+    GSE.Log("DEBUG", "UpdateIcon: No command at step " .. step .. " for " .. gsebutton, "Storage")
     return
   end
   
@@ -1213,7 +1214,7 @@ function GSE.UpdateIcon(self, reset)
       if strlower(cmd) == "castsequence" then
         -- Handle castsequence specially for dynamic icons
         local nextSpell = GSE.GetNextCastSequenceSpell(gsebutton, etc)
-        local info = GSE.ResolveSpell(nextSpell)
+        local info = GSE.SpellCache:Resolve(nextSpell)
         if nextSpell and info then
           SetMacroSpell(gsebutton, info.name or info.id)
           foundSpell = true
@@ -1227,7 +1228,7 @@ function GSE.UpdateIcon(self, reset)
           GSE.TraceSequence(gsebutton, step, spell)
         end
         if spell then
-          local info = GSE.ResolveSpell(spell)
+          local info = GSE.SpellCache:Resolve(spell)
           if info then
             SetMacroSpell(gsebutton, info.name or info.id, target)
             foundSpell = true
@@ -1392,7 +1393,7 @@ function GSE.CheckSequence(sequence)
 
   for k,v in ipairs(sequence) do
     if type(v) == "table" then
-      GSE.PrintDebugMessage("Macro corrupt at ".. k, "Storage")
+      GSE.Log("DEBUG", "Macro corrupt at ".. k, "Storage")
       error("Corrupt MacroVersion")
     end
   end

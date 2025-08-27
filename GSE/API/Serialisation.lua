@@ -90,11 +90,11 @@ end
 function GSE.EncodeMessage(tab)
 
   local one = libS:Serialize(tab)
-  GSE.PrintDebugMessage ("Compress Stage 1: " .. one, Statics.SourceTransmission)
+  GSE.Log("DEBUG", "Compress Stage 1: " .. one, Statics.SourceTransmission)
   local two = libC:CompressHuffman(one)
-  GSE.PrintDebugMessage ("Compress Stage 2: " .. two, Statics.SourceTransmission)
+  GSE.Log("DEBUG", "Compress Stage 2: " .. two, Statics.SourceTransmission)
   local final = GSE.encodeB64(two)
-  GSE.PrintDebugMessage ("Compress Stage Result: " .. final, Statics.SourceTransmission)
+  GSE.Log("DEBUG", "Compress Stage Result: " .. final, Statics.SourceTransmission)
   return final
 end
 
@@ -106,18 +106,18 @@ function GSE.DecodeMessage(data)
   --Decompress the decoded data
   local two, message = libC:Decompress(one)
   if(not two) then
-    GSE.PrintDebugMessage ("Error decompressing: " .. message, Statics.SourceTransmission)
+    GSE.Log("DEBUG", "Error decompressing: " .. message, Statics.SourceTransmission)
     return
   end
 
   -- Deserialize the decompressed data
   local success, final = libS:Deserialize(two)
   if (not success) then
-    GSE.PrintDebugMessage ("Error deserializing " .. final, Statics.SourceTransmission)
+    GSE.Log("DEBUG", "Error deserializing " .. final, Statics.SourceTransmission)
     return
   end
 
-  GSE.PrintDebugMessage ("Data Finalised", Statics.SourceTransmission)
+  GSE.Log("DEBUG", "Data Finalised", Statics.SourceTransmission)
   return success, final
 end
 
@@ -127,7 +127,7 @@ function GSE.TransmitSequence(key, channel, target)
   local elements = GSE.split(key, ",")
   local classid = tonumber(elements[1])
   local SequenceName = elements[2]
-  GSE.PrintDebugMessage("Sending Seqence [" .. classid .. "][" .. SequenceName .. "]", Statics.SourceTransmission )
+  GSE.Log("DEBUG", "Sending Seqence [" .. classid .. "][" .. SequenceName .. "]", Statics.SourceTransmission )
   t.ClassID = classid
   t.SequenceName = SequenceName
   t.Sequence = GSELibrary[classid][SequenceName]
@@ -137,14 +137,14 @@ end
 
 function GSE.sendMessage(tab, channel, target)
   local _, instanceType = IsInInstance()
-  GSE.PrintDebugMessage(tab.Command, Statics.SourceTransmission)
+  GSE.Log("DEBUG", tab.Command, Statics.SourceTransmission)
   if tab.Command == "GS-E_TRANSMITSEQUENCE" then
-    GSE.PrintDebugMessage(tab.SequenceName, Statics.SourceTransmission)
-    GSE.PrintDebugMessage(GSE.isEmpty(tab.Sequence))
-    GSE.PrintDebugMessage(GSE.ExportSequence(tab.Sequence,tab.SequenceName), Statics.SourceTransmission)
+    GSE.Log("DEBUG", tab.SequenceName, Statics.SourceTransmission)
+    GSE.Log("DEBUG", GSE.isEmpty(tab.Sequence))
+    GSE.Log("DEBUG", GSE.ExportSequence(tab.Sequence,tab.SequenceName), Statics.SourceTransmission)
   end
   local transmission = GSE.EncodeMessage(tab)
-  GSE.PrintDebugMessage("Transmission: \n" .. transmission, Statics.SourceTransmission)
+  GSE.Log("DEBUG", "Transmission: \n" .. transmission, Statics.SourceTransmission)
   if GSE.isEmpty(channel) then
     if IsInRaid() then
       channel = (not IsInRaid(LE_PARTY_CATEGORY_HOME) and IsInRaid(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "RAID"

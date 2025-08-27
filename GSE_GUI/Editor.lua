@@ -45,7 +45,7 @@ editframe:SetCallback("OnClose", function (self)
   if editframe.save then
     local event = {}
     event.action = "openviewer"
-    table.insert(GSE.OOCQueue, event)
+    GSE.CombatQueue:QueueAction(event)
   else
     GSE.GUIShowViewer()
   end

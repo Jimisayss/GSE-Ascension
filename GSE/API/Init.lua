@@ -54,37 +54,6 @@ function GSE.Print(message, title)
   end
 end
 
---- Send the message string to an output source.
---    If <code>GSEOptions.sendDebugOutputGSE.DebugOutput</code> then the output will
---    be appended to variable <code>GSE.DebugOutput</code>
---    If <code>GSEOptions.sendDebugOutputToChat</code> then the output will
---    be sent to variable <code>GSE.Print</code>
---    The Title is stripped for intermod debug output via GSE.DebugOutput
-local function determineOutputDestination(message, title)
-  if GSE.UnsavedOptions.DebugSequenceExecution then
-    GSE.DebugOutput = GSE.DebugOutput .. message .. "\n"
-	elseif GSEOptions.sendDebugOutputToDebugOutput   then
-    GSE.DebugOutput = GSE.DebugOutput .. message .. "\n"
-  end
-	if GSEOptions.sendDebugOutputToChatWindow  then
-    GSE.Print(message, title)
-	end
-end
-
---- Prints <code>message</code>to the chat handler.  This accepts an optional
---    <code>module</code> that is used to identify whether debugging for that module
---    is currently enabled.
-function GSE.PrintDebugMessage(message, module)
-    if GSE.isEmpty(module) then
-      module = "GS-Core"
-    end
-    if module == Statics.SequenceDebug then
-      determineOutputDestination(message, GSEOptions.TitleColour .. GNOME .. ':|r ' .. GSEOptions.AuthorColour .. L["<SEQUENCEDEBUG> |r "] )
-		elseif GSEOptions.debug and module ~= Statics.SequenceDebug and GSEOptions.DebugModules[module] == true then
-      determineOutputDestination(GSEOptions.TitleColour .. (GSE.isEmpty(module) and GNOME or module) .. ':|r ' .. GSEOptions.AuthorColour .. L["<DEBUG> |r "] .. message )
-    end
-end
-
 GSE.CurrentGCD = GetSpellCooldown(61304)
 GSE.RecorderActive = false
 

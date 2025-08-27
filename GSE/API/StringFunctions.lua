@@ -100,11 +100,11 @@ end
 
 --- Convert a string to an array of lines
 function GSE.SplitMeIntolines(str)
-  GSE.PrintDebugMessage("Entering GSTRSplitMeIntolines with : \n" .. str, GNOME)
+  GSE.Log("DEBUG", "Entering GSTRSplitMeIntolines with : \n" .. str, "StringFunctions")
   local t = {}
   local function helper(line)
     table.insert(t, line)
-    GSE.PrintDebugMessage("Line : " .. line, GNOME)
+    GSE.Log("DEBUG", "Line : " .. line, "StringFunctions")
     return ""
   end
   helper((str:gsub("(.-)\r?\n", helper)))
@@ -117,18 +117,18 @@ function GSE.SplitCastSequence(str)
   local slen = string.len(str)
   local modblock = false
   local start = 1
-  GSE.PrintDebugMessage (slen, "Storage")
+  GSE.Log("DEBUG", slen, "Storage")
   for i=1,slen,1 do
     if string.sub(str, i, i) == "[" then
       modblock = true
-      GSE.PrintDebugMessage("in mod at " .. i, "Storage")
+      GSE.Log("DEBUG", "in mod at " .. i, "Storage")
     elseif string.sub(str, i, i) == "]" then
       modblock = false
-      GSE.PrintDebugMessage ("leaving mod at " .. i, "Storage")
+      GSE.Log("DEBUG", "leaving mod at " .. i, "Storage")
     elseif string.sub(str, i, i) == "," and not modblock then
       table.insert(tab, string.sub(str, start, i-1))
       start = i+1
-      GSE.PrintDebugMessage("found terminator at " .. i, "Storage")
+      GSE.Log("DEBUG", "found terminator at " .. i, "Storage")
     end
 
   end

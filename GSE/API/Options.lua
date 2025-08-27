@@ -625,7 +625,7 @@ function GSE.GetOptionsTable()
             name = L["Enable Mod Debug Mode"],
             desc = L["This option dumps extra trace information to your chat window to help troubleshoot problems with the mod"],
             type = "toggle",
-            set = function(info,val) GSEOptions.debug = val GSE.PrintDebugMessage("Debug Mode Enabled", GNOME) end,
+            set = function(info,val) GSEOptions.debug = val GSE.Log("DEBUG", "Debug Mode Enabled", GNOME) end,
             get = function(info) return GSEOptions.debug end,
             order = 10
           },

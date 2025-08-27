@@ -18,11 +18,11 @@ if locale ~= "enUS" then
     GSE.TranslatorLanguageTables[Statics.TranslationKey][locale] = {}
     GSE.TranslatorLanguageTables[Statics.TranslationHash][locale] = {}
     GSE.TranslatorLanguageTables[Statics.TranslationShadow][locale] = {}
-    GSE.PrintDebugMessage("Adding missing Language :" .. locale, GNOME )
+    GSE.Log("DEBUG", "Adding missing Language :" .. locale, GNOME )
     local i = 0
     for k,v in pairs(GSE.TranslatorLanguageTables[Statics.TranslationKey]["enUS"]) do
-      GSE.PrintDebugMessage(i.. " " .. k .. " " ..v)
-      local info = GSE.ResolveSpell(k)
+      GSE.Log("DEBUG", i.. " " .. k .. " " ..v)
+      local info = GSE.SpellCache:Resolve(k)
       local spellname = info and info.name
       if spellname then
         GSE.TranslatorLanguageTables[Statics.TranslationKey][locale][k] = spellname
@@ -49,7 +49,7 @@ function GSE.ListCachedLanguages()
   i = 1
   for name, _ in pairs(GSE.TranslatorLanguageTables[Statics.TranslationKey]) do
     t[i] = name
-    GSE.PrintDebugMessage("found " .. name, GNOME)
+    GSE.Log("DEBUG", "found " .. name, GNOME)
     i = i + 1
   end
   return t
@@ -64,7 +64,7 @@ function GSE.TranslateSequence(sequence, sequenceName)
 end
 
 function GSE.TranslateSequenceFromTo(sequence, fromLocale, toLocale, sequenceName)
-  GSE.PrintDebugMessage("GSE.TranslateSequenceFromTo  From: " .. fromLocale .. " To: " .. toLocale, GNOME)
+  GSE.Log("DEBUG", "GSE.TranslateSequenceFromTo  From: " .. fromLocale .. " To: " .. toLocale, GNOME)
   -- check if fromLocale exists
   if GSE.isEmpty(GSE.TranslatorLanguageTables[Statics.TranslationKey][fromLocale]) then
     GSE.Print(L["Source Language "] .. fromLocale .. L[" is not available.  Unable to translate sequence "] ..  sequenceName)
@@ -87,34 +87,34 @@ function GSE.TranslateSequenceFromTo(sequence, fromLocale, toLocale, sequenceNam
       sequence.KeyRelease[k] = GSE.TranslateString(v, fromLocale, toLocale)
     end
   else
-    GSE.PrintDebugMessage("empty Keyrelease in translate", Statics.Translate)
+    GSE.Log("DEBUG", "empty Keyrelease in translate", Statics.Translate)
   end
   if not GSE.isEmpty(sequence.KeyPress) then
-    GSE.PrintDebugMessage("Keypress has stuff in translate", Statics.Translate)
+    GSE.Log("DEBUG", "Keypress has stuff in translate", Statics.Translate)
     for k,v in pairs(sequence.KeyPress) do
       -- Translate KeyRelease
       sequence.KeyPress[k] = GSE.TranslateString(v, fromLocale, toLocale)
     end
   else
-    GSE.PrintDebugMessage("empty Keypress in translate", Statics.Translate)
+    GSE.Log("DEBUG", "empty Keypress in translate", Statics.Translate)
   end
   if not GSE.isEmpty(sequence.PreMacro) then
-      GSE.PrintDebugMessage("Keypress has stuff in translate", Statics.Translate)
+      GSE.Log("DEBUG", "Keypress has stuff in translate", Statics.Translate)
     for k,v in pairs(sequence.PreMacro) do
       -- Translate KeyRelease
       sequence.PreMacro[k] = GSE.TranslateString(v, fromLocale, toLocale)
     end
   else
-    GSE.PrintDebugMessage("empty Keypress in translate", Statics.Translate)
+    GSE.Log("DEBUG", "empty Keypress in translate", Statics.Translate)
   end
   if not GSE.isEmpty(sequence.PostMacro) then
-    GSE.PrintDebugMessage("Keypress has stuff in translate", Statics.Translate)
+    GSE.Log("DEBUG", "Keypress has stuff in translate", Statics.Translate)
     for k,v in pairs(sequence.PostMacro) do
       -- Translate KeyRelease
       sequence.PostMacro[k] = GSE.TranslateString(v, fromLocale, toLocale)
     end
   else
-    GSE.PrintDebugMessage("empty Keypress in translate", Statics.Translate)
+    GSE.Log("DEBUG", "empty Keypress in translate", Statics.Translate)
   end
 
   -- check for blanks
@@ -128,12 +128,12 @@ end
 
 function GSE.TranslateString(instring, fromLocale, toLocale, cleanNewLines)
   instring = GSE.UnEscapeString(instring)
-  GSE.PrintDebugMessage("Entering GSE.TranslateString with : \n" .. instring .. "\n " .. fromLocale .. " " .. toLocale, GNOME)
+  GSE.Log("DEBUG", "Entering GSE.TranslateString with : \n" .. instring .. "\n " .. fromLocale .. " " .. toLocale, GNOME)
   local output = ""
   if not GSE.isEmpty(instring) then
     if GSE.isEmpty(string.find(instring, '--', 1, true)) then
       for cmd, etc in string.gmatch(instring or '', '/(%w+)%s+([^\n]+)') do
-        GSE.PrintDebugMessage("cmd : \n" .. cmd .. " etc: " .. etc, GNOME)
+        GSE.Log("DEBUG", "cmd : \n" .. cmd .. " etc: " .. etc, GNOME)
         output = output..GSEOptions.WOWSHORTCUTS .. "/" .. cmd .. Statics.StringReset .. " "
         if Statics.CastCmds[string.lower(cmd)] then
           if not cleanNewLines then
@@ -147,12 +147,12 @@ function GSE.TranslateString(instring, fromLocale, toLocale, cleanNewLines)
           if foundspell then
             output = output ..GSEOptions.KEYWORD .. returnval .. Statics.StringReset
           else
-            GSE.PrintDebugMessage("Did not find : " .. etc .. " in " .. fromLocale, GNOME)
+            GSE.Log("DEBUG", "Did not find : " .. etc .. " in " .. fromLocale, GNOME)
             output = output  .. etc
           end
         -- check for cast Sequences
         elseif string.lower(cmd) == "castsequence" then
-          GSE.PrintDebugMessage("attempting to split : " .. etc, GNOME)
+          GSE.Log("DEBUG", "attempting to split : " .. etc, GNOME)
           for x,y in ipairs(GSE.split(etc,";")) do
             for _, w in ipairs(GSE.SplitCastSequence(y,",")) do
               --look for conditionals at the startattack
@@ -188,7 +188,7 @@ function GSE.TranslateString(instring, fromLocale, toLocale, cleanNewLines)
         end
       end
     else
-      GSE.PrintDebugMessage("Detected Comment " .. string.find(instring, '--', 1, true), GNOME)
+      GSE.Log("DEBUG", "Detected Comment " .. string.find(instring, '--', 1, true), GNOME)
       output = output ..  GSEOptions.CONCAT .. instring .. Statics.StringReset
     end
     -- If nothing was found pass throught
@@ -198,7 +198,7 @@ function GSE.TranslateString(instring, fromLocale, toLocale, cleanNewLines)
   elseif cleanNewLines then
     output = output .. instring
   end
-  GSE.PrintDebugMessage("Exiting GSE.TranslateString with : \n" .. output, GNOME)
+  GSE.Log("DEBUG", "Exiting GSE.TranslateString with : \n" .. output, GNOME)
   -- check for random , at the end
   if string.sub(output, string.len(output)-1) == ", " then
     output = string.sub(output, 1, string.len(output)-2)
@@ -216,12 +216,12 @@ function GSE.TranslateSpell(str, fromLocale, toLocale, cleanNewLines)
   if not cleanNewLines then
     str = string.match(str, "^%s*(.-)%s*$")
   end
-  GSE.PrintDebugMessage("GSE.TranslateSpell Attempting to translate " .. str, GNOME)
+  GSE.Log("DEBUG", "GSE.TranslateSpell Attempting to translate " .. str, GNOME)
   if string.sub(str, string.len(str)) == "," then
     str = string.sub(str, 1, string.len(str)-1)
   end
   if string.match(str, ";") then
-    GSE.PrintDebugMessage("GSE.TranslateSpell found ; in " .. str .. " about to do recursive call.", GNOME)
+    GSE.Log("DEBUG", "GSE.TranslateSpell found ; in " .. str .. " about to do recursive call.", GNOME)
     for _, w in ipairs(GSE.split(str,";")) do
       found, returnval = GSE.TranslateSpell((cleanNewLines and w or string.match(w, "^%s*(.-)%s*$")), fromLocale, toLocale, (cleanNewLines and cleanNewLines or false))
       output = output ..  GSEOptions.KEYWORD .. returnval .. Statics.StringReset .. "; "
@@ -233,9 +233,9 @@ function GSE.TranslateSpell(str, fromLocale, toLocale, cleanNewLines)
     local conditionals, mods, etc = GSE.GetConditionalsFromString(str)
     if conditionals then
       output = output .. mods .. " "
-      GSE.PrintDebugMessage("GSE.TranslateSpell conditionals found ", GNOME)
+      GSE.Log("DEBUG", "GSE.TranslateSpell conditionals found ", GNOME)
     end
-    GSE.PrintDebugMessage("output: " .. output .. " mods: " .. mods .. " etc: " .. etc, GNOME)
+    GSE.Log("DEBUG", "output: " .. output .. " mods: " .. mods .. " etc: " .. etc, GNOME)
     if not cleanNewLines then
       etc = string.match(etc, "^%s*(.-)%s*$")
     end
@@ -245,33 +245,33 @@ function GSE.TranslateSpell(str, fromLocale, toLocale, cleanNewLines)
       foundspell = false
     end
     if foundspell then
-      GSE.PrintDebugMessage("Translating Spell ID : " .. foundspell , GNOME )
-      GSE.PrintDebugMessage(" to " .. (GSE.isEmpty(GSE.TranslatorLanguageTables[Statics.TranslationKey][toLocale][foundspell]) and " but its not in [Statics.TranslationKey][" .. toLocale .. "]" or GSE.TranslatorLanguageTables[Statics.TranslationKey][toLocale][foundspell]) , GNOME)
+      GSE.Log("DEBUG", "Translating Spell ID : " .. foundspell , GNOME )
+      GSE.Log("DEBUG", " to " .. (GSE.isEmpty(GSE.TranslatorLanguageTables[Statics.TranslationKey][toLocale][foundspell]) and " but its not in [Statics.TranslationKey][" .. toLocale .. "]" or GSE.TranslatorLanguageTables[Statics.TranslationKey][toLocale][foundspell]) , GNOME)
       output = output .. GSEOptions.KEYWORD .. GSE.TranslatorLanguageTables[Statics.TranslationKey][toLocale][foundspell] .. Statics.StringReset
       found = true
     else
-      GSE.PrintDebugMessage("Did not find : " .. etc .. " in " .. fromLocale .. " Hash table checking shadow table", GNOME)
+      GSE.Log("DEBUG", "Did not find : " .. etc .. " in " .. fromLocale .. " Hash table checking shadow table", GNOME)
       -- try the shadow table
       local nfoundspell = GSE.TranslatorLanguageTables[Statics.TranslationShadow][fromLocale][string.lower(etc)]
       if not nfoundspell or GSE.isEmpty(GSE.TranslatorLanguageTables[Statics.TranslationShadow][toLocale][nfoundspell]) then
         nfoundspell = false
       end
       if nfoundspell then
-        GSE.PrintDebugMessage("Translating from the shadow table for  Spell ID : " .. nfoundspell .. " to " .. GSE.TranslatorLanguageTables[Statics.TranslationKey][toLocale][nfoundspell], GNOME)
+        GSE.Log("DEBUG", "Translating from the shadow table for  Spell ID : " .. nfoundspell .. " to " .. GSE.TranslatorLanguageTables[Statics.TranslationKey][toLocale][nfoundspell], GNOME)
         output = output  .. GSEOptions.KEYWORD .. GSE.TranslatorLanguageTables[Statics.TranslationKey][toLocale][nfoundspell] .. Statics.StringReset
         found = true
       else
         -- Project Ascension compatibility: Check if spell exists via GetSpellInfo before marking as unknown
-        local info = GSE.ResolveSpell(etc)
+        local info = GSE.SpellCache:Resolve(etc)
         local spellName = info and info.name
         local icon = info and info.icon
         if spellName then
           -- Spell exists in game client (likely custom Ascension spell), allow it through
-          GSE.PrintDebugMessage("Found custom/Ascension spell via GetSpellInfo: " .. etc, GNOME)
+          GSE.Log("DEBUG", "Found custom/Ascension spell via GetSpellInfo: " .. etc, GNOME)
           output = output .. GSEOptions.KEYWORD .. etc .. Statics.StringReset
           found = true
         else
-          GSE.PrintDebugMessage("Did not find : " .. etc .. " in " .. fromLocale .. " or game client", GNOME)
+          GSE.Log("DEBUG", "Did not find : " .. etc .. " in " .. fromLocale .. " or game client", GNOME)
           output = output  .. GSEOptions.UNKNOWN .. etc .. Statics.StringReset
           if GSE.isEmpty(GSEOptions.UnfoundSpells) then
             GSEOptions.UnfoundSpells = {}
@@ -285,7 +285,7 @@ function GSE.TranslateSpell(str, fromLocale, toLocale, cleanNewLines)
 end
 
 function GSE.GetConditionalsFromString(str)
-  GSE.PrintDebugMessage("Entering GSE.GetConditionalsFromString with : " .. str, GNOME)
+  GSE.Log("DEBUG", "Entering GSE.GetConditionalsFromString with : " .. str, GNOME)
   --check for conditionals
   local found = false
   local mods = ""
@@ -302,22 +302,22 @@ function GSE.GetConditionalsFromString(str)
       rightstr = i
     end
   end
-  GSE.PrintDebugMessage("checking left : " .. (leftstr and leftstr or "nope"), GNOME)
-  GSE.PrintDebugMessage("checking right : " .. (rightstr and rightstr or "nope"), GNOME)
+  GSE.Log("DEBUG", "checking left : " .. (leftstr and leftstr or "nope"), GNOME)
+  GSE.Log("DEBUG", "checking right : " .. (rightstr and rightstr or "nope"), GNOME)
   if rightstr and leftstr then
      found = true
-     GSE.PrintDebugMessage("We have left and right stuff", GNOME)
+     GSE.Log("DEBUG", "We have left and right stuff", GNOME)
      mods = string.sub(str, leftstr, rightstr)
-     GSE.PrintDebugMessage("mods changed to: " .. mods, GNOME)
+     GSE.Log("DEBUG", "mods changed to: " .. mods, GNOME)
      str = string.sub(str, rightstr + 1)
-     GSE.PrintDebugMessage("str changed to: " .. str, GNOME)
+     GSE.Log("DEBUG", "str changed to: " .. str, GNOME)
   end
   str = string.match(str, "^%s*(.-)%s*$")
   -- Check for resets
-  GSE.PrintDebugMessage("checking for reset= in " .. str, GNOME)
+  GSE.Log("DEBUG", "checking for reset= in " .. str, GNOME)
   local resetleft = string.find(str, "reset=")
   if not GSE.isEmpty(resetleft) then
-    GSE.PrintDebugMessage("found reset= at" .. resetleft, GNOME)
+    GSE.Log("DEBUG", "found reset= at" .. resetleft, GNOME)
   end
 
   local rightfound = false
@@ -333,9 +333,9 @@ function GSE.GetConditionalsFromString(str)
       end
     end
     mods = mods .. " " .. string.sub(str, resetleft, resetright)
-    GSE.PrintDebugMessage("reset= mods changed to: " .. mods, GNOME)
+    GSE.Log("DEBUG", "reset= mods changed to: " .. mods, GNOME)
     str = string.sub(str, resetright + 1)
-    GSE.PrintDebugMessage("reset= test str changed to: " .. str, GNOME)
+    GSE.Log("DEBUG", "reset= test str changed to: " .. str, GNOME)
     found = true
   end
 
@@ -360,13 +360,13 @@ function GSE.ReportUnfoundSpells()
   GSEOptions.UnfoundSpellIDs = {}
 
   for _,spell in pairs(GSEOptions.UnfoundSpells) do
-    local info = GSE.ResolveSpell(spell)
+    local info = GSE.SpellCache:Resolve(spell)
     GSEOptions.UnfoundSpellIDs[spell] = info and info.name
   end
 
   GSEOptions.ErroneousSpellID = {}
   for k,v in pairs(GSE.TranslatorLanguageTables[Statics.TranslationHash]["enUS"]) do
-    local info = GSE.ResolveSpell(v)
+    local info = GSE.SpellCache:Resolve(v)
     local name = info and info.name
     local spellID = info and info.id
     if GSE.isEmpty(spellID) then

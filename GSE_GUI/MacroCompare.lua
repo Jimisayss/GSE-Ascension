@@ -22,7 +22,7 @@ compareframe:SetCallback("OnClose", function (self)
     -- Some action was taken, so wait for the OOC Queue to process.
     local event = {}
     event.action = "openviewer"
-    table.insert(GSE.OOCQueue, event)
+    GSE.CombatQueue:QueueAction(event)
   else
     GSE.GUIShowViewer()
   end
