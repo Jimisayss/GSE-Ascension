@@ -135,12 +135,14 @@ Statics.Sequential = "Sequential"
 --    use this like StepFunction = GSStaticPriority, in a macro
 --    This overides the sequential behaviour that is standard in GS
 Statics.PriorityImplementation = [[
-  limit = limit or 1
-  if step == limit then
-    limit = limit % #macros + 1
-    step = 1
+  if step < limit then
+    step = step + 1
   else
-    step = step % #macros + 1
+    limit = limit + 1
+    if limit > #macros then
+      limit = 1
+    end
+    step = 1
   end
 ]]
 
@@ -188,14 +190,14 @@ Statics.LoopPriorityImplementation = [[
     end
   else
     limit = limit or loopstart
-    if step == limit then
-      limit = limit % loopstop + 1
-      step = loopstart
-      if limit == loopiter then
-        loopiter = loopiter + 1
-      end
-    else
+    if step < limit then
       step = step + 1
+    else
+      limit = limit + 1
+      if limit > loopstop then
+        limit = loopstart
+      end
+      step = loopstart
     end
   end
 ]]

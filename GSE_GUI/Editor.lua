@@ -176,7 +176,11 @@ function GSE.GUIEditorPerformLayout(frame)
   nameeditbox:SetLabel(L["Sequence Name"])
   nameeditbox:SetWidth(250)
   nameeditbox:SetCallback("OnTextChanged", function() editframe.SequenceName = nameeditbox:GetText(); end)
-  nameeditbox:DisableButton( true)
+  if GSE.isNewFirstTimeCreated then
+    nameeditbox:SetDisabled(false)
+  else
+    nameeditbox:SetDisabled(true)
+  end
   nameeditbox:SetText(editframe.SequenceName)
   editframe.nameeditbox = nameeditbox
   headerGroup:AddChild(nameeditbox)

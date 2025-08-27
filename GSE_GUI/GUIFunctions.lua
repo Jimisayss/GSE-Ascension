@@ -3,7 +3,7 @@ local L = GSE.L
 function myUpdateFix()
   GSE:ProcessOOCQueue()
   GSE.ReloadSequences()
-  
+
 end
 --- This function pops up a confirmation dialog.
 function GSE.GUIDeleteSequence(currentSeq, iconWidget)
@@ -12,7 +12,7 @@ function GSE.GUIDeleteSequence(currentSeq, iconWidget)
       GSE.GUIConfirmDeleteSequence(GSE.GUIEditFrame.ClassID, GSE.GUIEditFrame.SequenceName)
   end
   StaticPopup_Show ("GSE-DeleteMacroDialog")
-  
+
 end
 
 --- This function then deletes the macro
@@ -38,11 +38,11 @@ function GSE.GUILoadEditor(key, incomingframe, recordedstring)
   local classid
   local sequenceName
   local sequence
-  
+
   if GSE.isEmpty(key) then
     classid = GSE.GetCurrentClassID()
     sequenceName = GSE.getSequenceName()
-	isNewFirstTimeCreated=true
+	GSE.isNewFirstTimeCreated=true
     sequence = {
       ["Author"] = GSE.GetCharacterName(),
       ["Talents"] = GSE.GetCurrentTalents(),
@@ -67,12 +67,12 @@ function GSE.GUILoadEditor(key, incomingframe, recordedstring)
     elements = GSE.split(key, ",")
     classid = tonumber(elements[1])
     sequenceName = elements[2]
-	
+
     -- Check if the library and sequence exist before cloning
     if GSELibrary[classid] and GSELibrary[classid][sequenceName] then
       sequence = GSE.CloneSequence(GSELibrary[classid][sequenceName], true)
     end
-    
+
     -- If sequence is still nil, don't create a fallback - this prevents corruption
     if not sequence then
       GSE.Print("Error: Could not load sequence '" .. (sequenceName or "unknown") .. "' for class " .. (classid or "unknown") .. ". Please recreate this sequence.")
@@ -85,7 +85,7 @@ function GSE.GUILoadEditor(key, incomingframe, recordedstring)
       end
       return
     end
-	isNewFirstTimeCreated=false
+	GSE.isNewFirstTimeCreated=false
   end
   GSE.GUIEditFrame.SequenceName = sequenceName
   GSE.GUIEditFrame.Sequence = sequence
@@ -104,57 +104,17 @@ function GSE.GUILoadEditor(key, incomingframe, recordedstring)
 	myUpdateFix()
 	GSE.GUIEditFrame:Show()
   end
-
+  GSE.isNewFirstTimeCreated=false
 end
 
 function GSE.getSequenceName()
-  
-  local names1 = GSE.GetSequenceNames()
-  local numberOfSeqs = 0
-  local currentSpecID, specname, specicon = GSE.GetCurrentSpecID()
-  local newSeqNameTemp = GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters("New"..specname))
-  local newSeqName = GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters("New"..specname))
-  local newSeqNumber=numberOfSeqs+1
-  if not GSE.isEmpty(GSELibrary[0]) then
-    numberOfSeqs = 0
-    for k,v in pairs(GSELibrary[0]) do
-      numberOfSeqs = numberOfSeqs + 1
-      if v.MacroVersions and type(v.MacroVersions) == "table" then
-        for i,j in ipairs(v.MacroVersions) do
-          GSELibrary[0][k].MacroVersions[tonumber(i)] = GSE.UnEscapeSequence(j)
-        end
-      end
-    end
+  local _, specname, _ = GSE.GetCurrentSpecID()
+  specname = specname or "UnknownSpec"
+  local newSeqName = "New" .. specname .. GetTime()
+  newSeqName = GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters(newSeqName))
+  if GSE.isEmpty(newSeqName) then
+    newSeqName = "GSE_New_Macro_" .. GetTime()
   end
-  if numberOfSeqs <= 0 then
-    if not GSE.isEmpty(GSELibrary[GSE.GetCurrentClassID()]) then
-      for k,v in GSE.pairsByKeys(names1) do
-        numberOfSeqs = numberOfSeqs + 1 
-      end
-    end
-  end
-  newSeqNumber=numberOfSeqs+1
-  newSeqNameTemp = GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters("New"..specname..newSeqNumber..GetTime()))
-  newSeqNameTemp = GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters(newSeqNameTemp))
-  for k,v in GSE.pairsByKeys(names1) do
-    local elements = GSE.split(k, ",")
-    local classid = tonumber(elements[1])
-    local sequencename = elements[2]
-	if newSeqNameTemp == sequencename then
-	  newSeqNumber=numberOfSeqs+1
-	  newSeqNameTemp = GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters("New"..specname..newSeqNumber..GetTime()))
-	  newSeqNameTemp = GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters(newSeqNameTemp))
-	end
-  end
-  for name, sequence in pairs(GSELibrary[GSE.GetCurrentClassID()]) do
-    if newSeqNameTemp == name then
-	  newSeqNumber = numberOfSeqs+1
-	  newSeqNameTemp = GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters("New"..specname..newSeqNumber..GetTime()))
-	  newSeqNameTemp = GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters(newSeqNameTemp))
-	end
-  end
-  newSeqNameTemp = GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters(newSeqNameTemp))
-  newSeqName =  GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters(newSeqNameTemp))
   return newSeqName
 end
 
