@@ -6,6 +6,7 @@ L["<SEQUENCEDEBUG> |r "] = true
 L["<DEBUG> |r "] = true
 
 --Output Strings from Core
+L["Your action has been queued and will be executed when you leave combat."] = true
 L["Close to Maximum Personal Macros.|r  You can have a maximum of "] = true
 L[" macros per character.  You currently have "] = true
 L["|r.  As a result this macro was not created.  Please delete some macros and reenter "] = true
