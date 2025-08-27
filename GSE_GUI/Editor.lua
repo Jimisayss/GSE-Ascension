@@ -300,7 +300,7 @@ function GSE:GUIDrawMetadataEditor(container)
   speciddropdown:SetWidth(200)
   speciddropdown:SetList(GSE.GetSpecNames())
   speciddropdown:SetCallback("OnValueChanged", function (obj,event,key)
-    local sid = Statics.SpecIDHashList[key]
+    local sid = GSE.GetSpecIdHashList()[key]
     specdropdownvalue = key;
     editframe.SpecID = sid
     editframe.Sequence.SpecID = sid
@@ -312,7 +312,7 @@ function GSE:GUIDrawMetadataEditor(container)
     end
   end)
   metasimplegroup:AddChild(speciddropdown)
-  speciddropdown:SetValue(Statics.wotlkSpecIDList[editframe.Sequence.SpecID])
+  speciddropdown:SetValue(GSE.GetDynamicSpecList()[editframe.Sequence.SpecID])
 
 
   local spacerlabel1 = AceGUI:Create("Label")
