@@ -120,10 +120,12 @@ function GSE.OOCAddSequenceToCollection(sequenceName, sequence, classid)
 
   -- CHeck for colissions
   local found = false
-  if (GSE.isEmpty(classid) or classid == 0) and not GSE.isEmpty(sequence.SpecID) then
+  if not GSE.isEmpty(sequence.Category) or (sequence.SpecID and sequence.SpecID == 0) then
+    classid = "GLOBAL"
+  elseif (GSE.isEmpty(classid) or classid == 0) and not GSE.isEmpty(sequence.SpecID) then
     classid = tonumber(GSE.GetClassIDforSpec(sequence.SpecID))
   elseif GSE.isEmpty(sequence.SpecID) then
-	local sidy=GSE.GetCurrentSpecID()
+    local sidy,_,_ = GSE.GetCurrentSpecID()
     sequence.SpecID = sidy
     classid = tonumber(GSE.GetClassIDforSpec(sequence.SpecID))
   end
@@ -174,7 +176,7 @@ function GSE.OOCAddSequenceToCollection(sequenceName, sequence, classid)
   if not GSE.isEmpty(confirmationtext) then
     GSE.Print(GSEOptions.EmphasisColour .. sequenceName .. "|r" .. L[" was imported with the following errors."] .. " " .. confirmationtext, GNOME)
   end
-  if classid == GSE.GetCurrentClassID() or classid == 0 then
+  if classid == GSE.GetCurrentClassID() or classid == 0 or classid == "GLOBAL" then
      GSE.UpdateSequence(sequenceName, sequence.MacroVersions[sequence.Default])
   end
   --- Added by me
@@ -198,7 +200,11 @@ end
 function GSE.GetActiveSequenceVersion(sequenceName)
   local classid = GSE.GetCurrentClassID()
   if not GSELibrary[GSE.GetCurrentClassID()] or GSE.isEmpty(GSELibrary[GSE.GetCurrentClassID()][sequenceName]) then
-    classid = 0
+    if GSE.IsAscension() then
+      classid = "GLOBAL"
+    else
+      classid = 0
+    end
   end
   -- Set to default or 1 if no default
   local vers = 1
@@ -291,7 +297,11 @@ function GSE.ImportSequence(importStr, legacy, createicon)
         if legacy then
           v = GSE.ConvertLegacySequence(v)
         end
-        GSE.AddSequenceToCollection(k, v)
+        local classid
+        if (v.SpecID and v.SpecID == 0) or v.Category then
+          classid = "GLOBAL"
+        end
+        GSE.AddSequenceToCollection(k, v, classid)
         if GSE.isEmpty(v.Icon) then
           -- Set a default icon
           v.Icon = GSE.GetDefaultIcon()

@@ -69,7 +69,11 @@ function GSE.GUILoadEditor(key, incomingframe, recordedstring)
     end
   else
     elements = GSE.split(key, ",")
-    classid = tonumber(elements[1])
+    if elements[1] == "GLOBAL" then
+      classid = "GLOBAL"
+    else
+      classid = tonumber(elements[1])
+    end
     sequenceName = elements[2]
 
     -- Check if the library and sequence exist before cloning
