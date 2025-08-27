@@ -194,15 +194,15 @@ end
 
 function GSE.GetDynamicSpecList()
   if not GSE.DynamicSpecList then
-    local asc = LibStub and LibStub:GetLibrary("LibAscensionConfig", true)
-    if asc and asc.GetArchetypes then
+    if GSE.IsAscension() then
       local specs = {[0] = "Global"}
-      for id, info in pairs(asc:GetArchetypes()) do
-        specs[id] = info.name or info
+      local asc = LibStub and LibStub:GetLibrary("LibAscensionConfig", true)
+      if asc and asc.GetArchetypes then
+        for id, info in pairs(asc:GetArchetypes()) do
+          specs[id] = info.name or info
+        end
       end
       GSE.DynamicSpecList = specs
-    elseif GSE.IsAscension() then
-      GSE.DynamicSpecList = {[0] = "Global"}
     else
       GSE.DynamicSpecList = Statics.wotlkSpecIDList
     end
