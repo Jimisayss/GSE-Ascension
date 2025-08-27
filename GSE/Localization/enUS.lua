@@ -1909,4 +1909,6 @@ GSE.TranslatorLanguageTables[Statics.TranslationKey]["enUS"] = {
 	[228260] = "Void Eruption",
 	[228477] = "Soul Cleave",
 	[228755] = "Cancel Aura",
+	["Category"] = "Category",
+	["Global"] = "Global",
 }

@@ -37,52 +37,52 @@ viewframe.frame:SetScript("OnSizeChanged", function ()
   local screenWidth = GetScreenWidth()
   local maxHeight = screenHeight - 40  -- Leave some space at top/bottom
   local maxWidth = screenWidth - 40    -- Leave some space at sides
-  
+
   -- Get current position
   local top = viewframe.frame:GetTop()
   local bottom = viewframe.frame:GetBottom()
   local left = viewframe.frame:GetLeft()
   local right = viewframe.frame:GetRight()
-  
+
   -- Check if we need to constrain the size or reposition
   local needsResize = false
   local needsMove = false
   local newHeight = Height
   local newWidth = Width
-  
+
   if Height > maxHeight then
     newHeight = maxHeight
     needsResize = true
   end
-  
+
   if Width > maxWidth then
     newWidth = maxWidth
     needsResize = true
   end
-  
+
   -- Check if window is going off screen edges
   if top and top > screenHeight then
     needsMove = true
   end
-  
+
   if bottom and bottom < 0 then
     needsMove = true
   end
-  
+
   if left and left < 0 then
     needsMove = true
   end
-  
+
   if right and right > screenWidth then
     needsMove = true
   end
-  
+
   -- Apply constraints if needed
   if needsResize then
     viewframe.frame:SetHeight(newHeight)
     viewframe.frame:SetWidth(newWidth)
   end
-  
+
   -- Reposition if off screen
   if needsMove then
     local newPoint = {}
@@ -91,7 +91,7 @@ viewframe.frame:SetScript("OnSizeChanged", function ()
     viewframe.frame:ClearAllPoints()
     viewframe.frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", newPoint.x, newPoint.y)
   end
-  
+
   viewframe:DoLayout()
 end)
 
@@ -131,7 +131,12 @@ end
 
 function GSE.GUICreateSequencePanels(frame, container, key)
   local elements = GSE.split(key, ",")
-  local classid = tonumber(elements[1])
+  local classid
+  if elements[1] == "GLOBAL" then
+    classid = "GLOBAL"
+  else
+    classid = tonumber(elements[1])
+  end
   local sequencename = elements[2]
   local fontName, fontHeight, fontFlags = GameFontNormal:GetFont()
   local font = GameFontNormal:GetFontObject()
@@ -171,12 +176,12 @@ function GSE.GUICreateSequencePanels(frame, container, key)
 
   local helplabel = AceGUI:Create("Label")
   local helptext = L["No Help Information Available"]
- 
+
 
   if not GSE.isEmpty(GSELibrary[classid][sequencename].Help) then
      helptext = GSELibrary[classid][sequencename].Help
   end
-  
+
   helplabel:SetFullWidth(true)
   helplabel:SetFontObject(font)
   helplabel:SetText(helptext )
@@ -269,10 +274,10 @@ function GSE.GUIViewerToolbar(container)
   local updbutton = AceGUI:Create("Button")
   updbutton:SetText(L["Edit"])
   updbutton:SetWidth(150)
-  updbutton:SetCallback("OnClick", function() 
+  updbutton:SetCallback("OnClick", function()
 	--editframe.save = false
     GSE.GUIEditFrame:SetStatusText("")
-	GSE.GUILoadEditor(editkey, viewframe) 
+	GSE.GUILoadEditor(editkey, viewframe)
   end)
   updbutton:SetDisabled(true)
   buttonGroup:AddChild(updbutton)
