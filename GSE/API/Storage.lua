@@ -246,8 +246,15 @@ end
 --- Load a serialised Sequence
 function GSE.ImportSerialisedSequence(importstring, createicon)
   local decompresssuccess, actiontable = GSE.DecodeMessage(importstring)
-  GSE.PrintDebugMessage (string.format("Decomsuccess: %s  tablerows: %s   type cell1 %s cell2 %s" , tostring(decompresssuccess), table.getn(actiontable), type(actiontable[1]), type(actiontable[2])), Statics.SourceTransmission)
-  if (decompresssuccess) and (table.getn(actiontable) == 2) and (type(actiontable[1]) == "string") and (type(actiontable[2]) == "table") then
+  local tablerows = 0
+  local cell1type, cell2type = "nil", "nil"
+  if type(actiontable) == "table" then
+    tablerows = table.getn(actiontable)
+    cell1type = type(actiontable[1])
+    cell2type = type(actiontable[2])
+  end
+  GSE.PrintDebugMessage (string.format("Decomsuccess: %s  tablerows: %s   type cell1 %s cell2 %s" , tostring(decompresssuccess), tablerows, cell1type, cell2type), Statics.SourceTransmission)
+  if (decompresssuccess) and (tablerows == 2) and (cell1type == "string") and (cell2type == "table") then
     GSE.AddSequenceToCollection(actiontable[1], actiontable[2])
     if createicon then
       GSE.CheckMacroCreated(actiontable[1], true)
