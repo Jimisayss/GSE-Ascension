@@ -565,6 +565,7 @@ function GSE.ResetButtons()
     local gsebutton = _G[k]
     if gsebutton:GetAttribute("combatreset") == true then
       gsebutton:SetAttribute("step",1)
+      gsebutton:SetAttribute("limit",1)
       GSE.UpdateIcon(gsebutton, true)
       GSE.UsedSequences[k] = nil
     end
