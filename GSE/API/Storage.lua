@@ -323,6 +323,11 @@ function GSE.ReloadSequences()
         GSE.UpdateSequence(name, sequence.MacroVersions[GSE.GetActiveSequenceVersion(name)])
       end
     end
+    if not GSE.isEmpty(GSELibrary["GLOBAL"]) then
+      for name, sequence in pairs(GSELibrary["GLOBAL"]) do
+        GSE.UpdateSequence(name, sequence.MacroVersions[GSE.GetActiveSequenceVersion(name)])
+      end
+    end
   end
 end
 
@@ -371,6 +376,9 @@ function GSE.ExportSequence(sequence, sequenceName, compact)
     end
     if not GSE.isEmpty(sequence.Help) then
       sequencemeta = sequencemeta .. "  Help = [[" .. GSEOptions.INDENT .. sequence.Help .. Statics.StringReset .. "]],\n"
+    end
+    if not GSE.isEmpty(sequence.Category) then
+      sequencemeta = sequencemeta .. "  Category = \"" .. GSEOptions.INDENT .. sequence.Category .. Statics.StringReset .. "\",\n"
     end
     sequencemeta = sequencemeta .. "  Default=" ..sequence.Default .. ",\n"
     if not GSE.isEmpty(sequence.Raid) then
@@ -962,7 +970,7 @@ function GSE.GetSequenceNames()
         end
       end
     else
-      if k == 0 and GSEOptions.filterList[Statics.Global] then
+      if (k == 0 or k == "GLOBAL") and GSEOptions.filterList[Statics.Global] then
         for i,j in pairs(GSELibrary[k]) do
           keyset[k .. "," .. i] = i
         end
@@ -980,7 +988,9 @@ function GSE.GetMacroIcon(classid, sequenceIndex)
     return GSEOptions.DefaultDisabledMacroIcon or "INV_MISC_QUESTIONMARK"
   end
   
-  classid = tonumber(classid)
+  if classid ~= "GLOBAL" then
+    classid = tonumber(classid)
+  end
   GSE.PrintDebugMessage("sequenceIndex: " .. (GSE.isEmpty(sequenceIndex) and "No value" or sequenceIndex), GNOME)
   local macindex = GetMacroIndexByName(sequenceIndex)
   local a, iconid, c =  GetMacroInfo(macindex)

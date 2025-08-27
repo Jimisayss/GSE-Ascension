@@ -70,46 +70,46 @@ editframe.frame:SetScript("OnSizeChanged", function ()
   local screenWidth = GetScreenWidth()
   local maxHeight = screenHeight - 40  -- Leave some space at top/bottom
   local maxWidth = screenWidth - 40    -- Leave some space at sides
-  
+
   -- Get current position
   local top = editframe.frame:GetTop()
   local bottom = editframe.frame:GetBottom()
   local left = editframe.frame:GetLeft()
   local right = editframe.frame:GetRight()
-  
+
   -- Check if we need to constrain the size or reposition
   local needsResize = false
   local needsMove = false
   local newHeight = editframe.Height
   local newWidth = editframe.Width
-  
+
   if editframe.Height > maxHeight then
     newHeight = maxHeight
     needsResize = true
   end
-  
+
   if editframe.Width > maxWidth then
     newWidth = maxWidth
     needsResize = true
   end
-  
+
   -- Check if window is going off screen edges
   if top and top > screenHeight then
     needsMove = true
   end
-  
+
   if bottom and bottom < 0 then
     needsMove = true
   end
-  
+
   if left and left < 0 then
     needsMove = true
   end
-  
+
   if right and right > screenWidth then
     needsMove = true
   end
-  
+
   -- Apply constraints if needed
   if needsResize then
     editframe.frame:SetHeight(newHeight)
@@ -117,7 +117,7 @@ editframe.frame:SetScript("OnSizeChanged", function ()
     editframe.Height = newHeight
     editframe.Width = newWidth
   end
-  
+
   -- Reposition if off screen
   if needsMove then
     local newPoint = {}
@@ -126,13 +126,13 @@ editframe.frame:SetScript("OnSizeChanged", function ()
     editframe.frame:ClearAllPoints()
     editframe.frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", newPoint.x, newPoint.y)
   end
-  
+
   -- Update TabGroup height and layout
   if editframe.updateTabGroupHeight then
     editframe.updateTabGroupHeight()
   end
   editframe:DoLayout()
-  
+
   -- Trigger a layout refresh on the TabGroup's content
   if editframe.ContentContainer and editframe.ContentContainer.LayoutFinished then
     editframe.ContentContainer:Fire("OnHeightSet")
@@ -295,6 +295,7 @@ function GSE:GUIDrawMetadataEditor(container)
   metasimplegroup:SetLayout("Flow")
   metasimplegroup:SetWidth(editframe.Width - 100)
 
+  --[[
   local speciddropdown = AceGUI:Create("Dropdown")
   speciddropdown:SetLabel(L["Specialisation / Class ID"])
   speciddropdown:SetWidth(200)
@@ -311,9 +312,26 @@ function GSE:GUIDrawMetadataEditor(container)
       editframe.ClassID = tonumber(sid)
     end
   end)
-  metasimplegroup:AddChild(speciddropdown)
-  speciddropdown:SetValue(GSE.GetDynamicSpecList()[editframe.Sequence.SpecID])
+  --]]
+  --metasimplegroup:AddChild(speciddropdown)
+  --speciddropdown:SetValue(GSE.GetDynamicSpecList()[editframe.Sequence.SpecID])
 
+  local categoryeditbox = AceGUI:Create("EditBox")
+  categoryeditbox:SetLabel(L["Category"])
+  categoryeditbox:SetWidth(200)
+  categoryeditbox:DisableButton(true)
+  if not GSE.isEmpty(editframe.Sequence.Category) then
+    categoryeditbox:SetText(editframe.Sequence.Category)
+  else
+    categoryeditbox:SetText(L["Global"])
+    editframe.Sequence.Category = "Global"
+  end
+  categoryeditbox:SetCallback("OnTextChanged", function (obj,event,key)
+    editframe.Sequence.Category = key
+    editframe.ClassID = "GLOBAL"
+    editframe.Sequence.SpecID = 0
+  end)
+  metasimplegroup:AddChild(categoryeditbox)
 
   local spacerlabel1 = AceGUI:Create("Label")
   spacerlabel1:SetWidth(80)

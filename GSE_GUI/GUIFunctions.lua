@@ -3,7 +3,7 @@ local L = GSE.L
 function myUpdateFix()
   GSE:ProcessOOCQueue()
   GSE.ReloadSequences()
-  
+
 end
 --- This function pops up a confirmation dialog.
 function GSE.GUIDeleteSequence(currentSeq, iconWidget)
@@ -12,7 +12,7 @@ function GSE.GUIDeleteSequence(currentSeq, iconWidget)
       GSE.GUIConfirmDeleteSequence(GSE.GUIEditFrame.ClassID, GSE.GUIEditFrame.SequenceName)
   end
   StaticPopup_Show ("GSE-DeleteMacroDialog")
-  
+
 end
 
 --- This function then deletes the macro
@@ -38,9 +38,13 @@ function GSE.GUILoadEditor(key, incomingframe, recordedstring)
   local classid
   local sequenceName
   local sequence
-  
+
   if GSE.isEmpty(key) then
-    classid = GSE.GetCurrentClassID()
+    if GSE.IsAscension() then
+      classid = "GLOBAL"
+    else
+      classid = GSE.GetCurrentClassID()
+    end
     sequenceName = GSE.getSequenceName()
 	isNewFirstTimeCreated=true
     sequence = {
@@ -67,12 +71,12 @@ function GSE.GUILoadEditor(key, incomingframe, recordedstring)
     elements = GSE.split(key, ",")
     classid = tonumber(elements[1])
     sequenceName = elements[2]
-	
+
     -- Check if the library and sequence exist before cloning
     if GSELibrary[classid] and GSELibrary[classid][sequenceName] then
       sequence = GSE.CloneSequence(GSELibrary[classid][sequenceName], true)
     end
-    
+
     -- If sequence is still nil, don't create a fallback - this prevents corruption
     if not sequence then
       GSE.Print("Error: Could not load sequence '" .. (sequenceName or "unknown") .. "' for class " .. (classid or "unknown") .. ". Please recreate this sequence.")
@@ -108,7 +112,7 @@ function GSE.GUILoadEditor(key, incomingframe, recordedstring)
 end
 
 function GSE.getSequenceName()
-  
+
   local names1 = GSE.GetSequenceNames()
   local numberOfSeqs = 0
   local currentSpecID, specname, specicon = GSE.GetCurrentSpecID()
@@ -129,7 +133,7 @@ function GSE.getSequenceName()
   if numberOfSeqs <= 0 then
     if not GSE.isEmpty(GSELibrary[GSE.GetCurrentClassID()]) then
       for k,v in GSE.pairsByKeys(names1) do
-        numberOfSeqs = numberOfSeqs + 1 
+        numberOfSeqs = numberOfSeqs + 1
       end
     end
   end
