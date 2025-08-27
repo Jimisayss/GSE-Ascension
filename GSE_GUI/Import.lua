@@ -80,7 +80,7 @@ function GSE.GUIImportSequence()
       GSE.GUIImportFrame:Hide()
       local event = {}
       event.action = "openviewer"
-      table.insert(GSE.OOCQueue, event)
+      GSE.CombatQueue:QueueAction(event)
     else
       StaticPopup_Show ("GSE-MacroImportFailure")
     end
@@ -92,7 +92,7 @@ function GSE.GUIImportSequence()
       GSE.GUIImportFrame:Hide()
       local event = {}
       event.action = "openviewer"
-      table.insert(GSE.OOCQueue, event)
+      GSE.CombatQueue:QueueAction(event)
     else
       StaticPopup_Show ("GSE-MacroImportFailure")
     end

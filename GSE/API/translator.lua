@@ -22,7 +22,7 @@ if locale ~= "enUS" then
     local i = 0
     for k,v in pairs(GSE.TranslatorLanguageTables[Statics.TranslationKey]["enUS"]) do
       GSE.PrintDebugMessage(i.. " " .. k .. " " ..v)
-      local info = GSE.ResolveSpell(k)
+      local info = GSE.SpellCache:Resolve(k)
       local spellname = info and info.name
       if spellname then
         GSE.TranslatorLanguageTables[Statics.TranslationKey][locale][k] = spellname
@@ -262,7 +262,7 @@ function GSE.TranslateSpell(str, fromLocale, toLocale, cleanNewLines)
         found = true
       else
         -- Project Ascension compatibility: Check if spell exists via GetSpellInfo before marking as unknown
-        local info = GSE.ResolveSpell(etc)
+        local info = GSE.SpellCache:Resolve(etc)
         local spellName = info and info.name
         local icon = info and info.icon
         if spellName then
@@ -360,13 +360,13 @@ function GSE.ReportUnfoundSpells()
   GSEOptions.UnfoundSpellIDs = {}
 
   for _,spell in pairs(GSEOptions.UnfoundSpells) do
-    local info = GSE.ResolveSpell(spell)
+    local info = GSE.SpellCache:Resolve(spell)
     GSEOptions.UnfoundSpellIDs[spell] = info and info.name
   end
 
   GSEOptions.ErroneousSpellID = {}
   for k,v in pairs(GSE.TranslatorLanguageTables[Statics.TranslationHash]["enUS"]) do
-    local info = GSE.ResolveSpell(v)
+    local info = GSE.SpellCache:Resolve(v)
     local name = info and info.name
     local spellID = info and info.id
     if GSE.isEmpty(spellID) then

@@ -56,6 +56,7 @@ Localization\ModL_zhTW.lua
 API\Init.lua
 API\Statics.lua
 API\Shims.lua
+API\WotLK.lua
 API\Ascension.lua
 API\InitialOptions.lua
 
@@ -71,9 +72,14 @@ API\StringFunctions.lua
 API\CharacterFunctions.lua
 SampleMacros.lua
 SampleMacros_Documented.lua
+Samples\Ascension.lua
 API\Storage.lua
 API\Translator.lua
 API\Plugins.lua
 API\Serialisation.lua
 API\Options.lua
 API\Events.lua
+
+# Core Modules
+Core\CombatQueue.lua
+Core\SpellCache.lua

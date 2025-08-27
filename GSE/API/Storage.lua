@@ -104,7 +104,7 @@ function GSE.AddSequenceToCollection(sequenceName, sequence, classid)
   vals.sequencename = sequenceName
   vals.sequence = sequence
   vals.classid = classid
-  table.insert(GSE.OOCQueue, vals)
+  GSE.CombatQueue:QueueAction(vals)
 end
 --- Add a sequence to the library
 function GSE.OOCAddSequenceToCollection(sequenceName, sequence, classid)
@@ -577,7 +577,7 @@ function GSE.UpdateSequence(name, sequence)
   vals.action = "UpdateSequence"
   vals.name = name
   vals.macroversion = sequence
-  table.insert(GSE.OOCQueue, vals)
+  GSE.CombatQueue:QueueAction(vals)
 end
 
 
@@ -847,7 +847,7 @@ function GSE.CheckMacroCreated(SequenceName, create)
   vals.action = "CheckMacroCreated"
   vals.sequencename = SequenceName
   vals.create = create
-  table.insert(GSE.OOCQueue, vals)
+  GSE.CombatQueue:QueueAction(vals)
 end
 
 --- Check if a macro has been created and if the create flag is true and the macro hasnt been created then create it.
@@ -1213,7 +1213,7 @@ function GSE.UpdateIcon(self, reset)
       if strlower(cmd) == "castsequence" then
         -- Handle castsequence specially for dynamic icons
         local nextSpell = GSE.GetNextCastSequenceSpell(gsebutton, etc)
-        local info = GSE.ResolveSpell(nextSpell)
+        local info = GSE.SpellCache:Resolve(nextSpell)
         if nextSpell and info then
           SetMacroSpell(gsebutton, info.name or info.id)
           foundSpell = true
@@ -1227,7 +1227,7 @@ function GSE.UpdateIcon(self, reset)
           GSE.TraceSequence(gsebutton, step, spell)
         end
         if spell then
-          local info = GSE.ResolveSpell(spell)
+          local info = GSE.SpellCache:Resolve(spell)
           if info then
             SetMacroSpell(gsebutton, info.name or info.id, target)
             foundSpell = true

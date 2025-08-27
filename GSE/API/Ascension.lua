@@ -1,46 +1,35 @@
+-- ============================================================================
+--
+--      Ascension.lua
+--
+--  This file contains detection logic and other functions specific to the
+--  Project Ascension client.
+--
+-- ============================================================================
+
 local GSE = GSE
 
-local spellCache = {}
-
+--- Detects if the client is a Project Ascension client.
+-- @return boolean
 function GSE.IsAscension()
+  -- First, check for the "portal" CVar, which is a common indicator.
   if GetCVar then
     local portal = GetCVar("portal")
     if type(portal) == "string" and portal:find("Ascension") then
       return true
     end
   end
+
+  -- Second, check for the presence of the LibAscensionConfig library,
+  -- which is a more reliable indicator.
   if LibStub and LibStub:GetLibrary("LibAscensionConfig", true) then
     return true
   end
+
   return false
 end
 
-function GSE.ResolveSpell(ref)
-  if not ref then return nil end
-  if spellCache[ref] ~= nil then
-    return spellCache[ref]
-  end
-  local lookup = ref
-  if type(ref) == "string" and tonumber(ref) then
-    lookup = tonumber(ref)
-  end
-  local name, _, icon, _, _, _, spellId = GetSpellInfo(lookup)
-  if not name then
-    GSE.Log("WARN", "Unknown spell " .. tostring(ref))
-    spellCache[ref] = nil
-    return nil
-  end
-  local id = type(ref) == "number" and ref or spellId
-  local result = {name = name, id = id, icon = icon}
-  spellCache[ref] = result
-  return result
-end
-
-local function clearCache()
-  spellCache = {}
-end
-
-GSE:RegisterEvent("SPELLS_CHANGED", clearCache)
-GSE:RegisterEvent("LEARNED_SPELL_IN_TAB", clearCache)
+-- The ResolveSpell and spell cache logic has been moved to Core/SpellCache.lua
+-- for better modularity and robustness.
 
 return GSE

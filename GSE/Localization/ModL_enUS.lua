@@ -390,6 +390,7 @@ L["The GSE Out of Combat queue is %s"] = true
 
 -- GSE 2.2.00
 L["Unable to interpret sequence."] = true
+L["Ascension detected: Global profile active."] = true
 L["Use Verbose Export Sequence Format"] = true
 L["When exporting a sequence use a human readable verbose form."] = true
 L["Gnome Sequencer: Compress a Sequence String."] = true
@@ -401,3 +402,5 @@ L["Heroic setting changed to Default."] = true
 L["Dungeon setting changed to Default."] = true
 L["Party setting changed to Default."] = true
 L["Macro found by the name %sPVP%s. Rename this macro to a different name to be able to use it.  WOW has a global object called PVP that is referenced instead of this macro."] = true
+L["Sample macros for Ascension have been loaded. Type /gse to view them."] = true
+L["Ascension sample macros are not available."] = true

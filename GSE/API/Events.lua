@@ -91,31 +91,7 @@ function GSE:PARTY_MEMBERS_CHANGED()
   end
 end
 function GSE:ZONE_CHANGED_NEW_AREA()
- -- local name, type1, difficulty, difficultyName, maxPlayers, playerDifficulty, isDynamicInstance, mapID, instanceGroupSize = GetInstanceInfo()
- ---dynamicDifficulty reflected the normal/heroic switch and difficultyID the 10/25 player switch for dynamic instances). 
- ---GetRaidDifficulty,GetDungeonDifficulty,IsInInstance,GetInstanceInfo(),GetInstanceDifficulty()
- -----3 → 10 Player
--------------4 → 25 Player
--------------5 → 10 Player (Heroic)
--------------6 → 25 Player (Heroic)
-----1 5 players normal
------2 5 players heroic
--- GetInstanceDifficulty()
--- SetDungeonDifficulty
-
--- 1 → 5 Player & Scenario
--- 2 → 5 Player (Heroic)
---SetRaidDifficulty
--- 1 → 10 Player
--- 2 → 25 Player
--- 3 → 10 Player (Heroic)
--- 4 → 25 Player (Heroic)
-
--- 10 → 40 Player
--- Notes
-local inInstance, instancetype = IsInInstance()
---local _, _, difficultyIndex, _, _, playerDifficulty, isDynamic = GetInstanceInfo()
-
+ local inInstance, instancetype = IsInInstance()
   local name, type1, difficulty, difficultyName, maxPlayers, playerDifficulty, isDynamicInstance = GetInstanceInfo()
   if type1 == "arena" or type1 == "pvp" then
     GSE.PVPFlag = true
@@ -141,7 +117,7 @@ local inInstance, instancetype = IsInInstance()
   else
     GSE.inRaid = false
   end
-  if (GetNumPartyMembers()>0) then
+  if (GetNumGroupMembers()>0) then
     GSE.inParty = true
   else
     GSE.inParty = false
@@ -156,6 +132,8 @@ function GSE:PLAYER_ENTERING_WORLD()
 end
 
 function GSE:ADDON_LOADED(event, addon)
+  if addon ~= "GSE" then return end
+
   if GSE.isEmpty(GSELibrary) then
     GSELibrary = {}
   end
@@ -195,9 +173,7 @@ function GSE:ADDON_LOADED(event, addon)
       end
     end
   end
-  if counter <= 0 then
-    --StaticPopup_Show ("GSE-SampleMacroDialog")
-  end
+
   GSE.PrintDebugMessage("I am loaded")
   GSEOptions.UnfoundSpells = {}
   GSEOptions.ErroneousSpellID = {}
@@ -209,6 +185,16 @@ function GSE:ADDON_LOADED(event, addon)
   
   GSE:SendMessage(Statics.CoreLoadedMessage)
 
+  -- Initialize the Combat Queue
+  if GSE.CombatQueue and GSE.CombatQueue.Initialize then
+    GSE.CombatQueue:Initialize()
+  end
+
+  -- Initialize the Spell Cache
+  if GSE.SpellCache and GSE.SpellCache.Initialize then
+    GSE.SpellCache:Initialize()
+  end
+
   -- Register the Sample Macros
   local seqnames = {}
   table.insert(seqnames, "Assorted Sample Macros")
@@ -219,15 +205,23 @@ function GSE:ADDON_LOADED(event, addon)
     GSE.LoadDocumentedSampleMacros()
   end
 
+  -- If on Ascension, merge the Ascension sample macros into the global samples.
+  if GSE.IsAscension and GSE.IsAscension() and GSE.AscensionSampleMacros then
+    if not GSE.Static.SampleMacros[0] then
+      GSE.Static.SampleMacros[0] = {}
+    end
+    for k, v in pairs(GSE.AscensionSampleMacros) do
+      GSE.Static.SampleMacros[0][k] = v
+    end
+  end
+
   GSE:RegisterMessage(Statics.ReloadMessage, "processReload")
 
   LibStub("AceConfig-3.0"):RegisterOptionsTable("GSE", GSE.GetOptionsTable(), {"gseo"})
-  if addon == GNOME then
-    LibStub("AceConfigDialog-3.0"):AddToBlizOptions("GSE", "|cffff0000GSE:|r Gnome Sequencer Enhanced")
-    if not GSEOptions.HideLoginMessage then
-      GSE.Print(GSEOptions.AuthorColour .. L["GnomeSequencer-Enhanced loaded.|r  Type "] .. GSEOptions.CommandColour .. L["/gs help|r to get started."], GNOME)
-      GSE.Print(L["New: Type "] .. GSEOptions.CommandColour .. "/gse loadsamples" .. L["|r to load sample macros for your class."], GNOME)
-    end
+  LibStub("AceConfigDialog-3.0"):AddToBlizOptions("GSE", "|cffff0000GSE:|r Gnome Sequencer Enhanced")
+  if not GSEOptions.HideLoginMessage then
+    GSE.Print(GSEOptions.AuthorColour .. L["GnomeSequencer-Enhanced loaded.|r  Type "] .. GSEOptions.CommandColour .. L["/gs help|r to get started."], GNOME)
+    GSE.Print(L["New: Type "] .. GSEOptions.CommandColour .. "/gse loadsamples" .. L["|r to load sample macros for your class."], GNOME)
   end
 
   -- added in 2.1.0
@@ -282,9 +276,7 @@ function GSE:UNIT_SPELLCAST_SUCCEEDED(event, unit, spell)
   if unit == "player" then
     local _, GCD_Timer = GetSpellCooldown(61304)
     GCD = true
-	--local BR = CreateFrame("Frame")
 	GCD_Update_Timer=myAceTimer:ScheduleTimer(AFTER_UNIT_SPELLCAST_SUCCEEDED, GCD_Timer)
-    --GCD_Update_Timer = C_Timer.After(GCD_Timer, function () GCD = nil; GSE.PrintDebugMessage("GCD OFF") end)
     GSE.PrintDebugMessage("GCD Delay:" .. " " .. GCD_Timer)
     GSE.CurrentGCD = GCD_Timer
 
@@ -295,25 +287,14 @@ function GSE:UNIT_SPELLCAST_SUCCEEDED(event, unit, spell)
 end
 
 function GSE:PLAYER_REGEN_ENABLED(unit,event,addon)
-  GSE:UnregisterEvent('PLAYER_REGEN_ENABLED')
   if GSEOptions.resetOOC then
     GSE.ResetButtons()
   end
-  GSE:RegisterEvent('PLAYER_REGEN_ENABLED')
 end
-
-local IgnoreMacroUpdates = false
 
 function GSE:PLAYER_LOGOUT()
   GSE.PrepareLogout()
 end
-
--- PLAYER_SPECIALIZATION_CHANGED doesn't exist in 3.3.5a
--- In 3.3.5a, talent changes happen through ACTIVE_TALENT_GROUP_CHANGED
--- but we already handle reloading sequences elsewhere
-
--- GROUP_ROSTER_UPDATE doesn't exist in 3.3.5a
--- Its functionality has been moved to PARTY_MEMBERS_CHANGED and RAID_ROSTER_UPDATE
 
 function GSE:RAID_ROSTER_UPDATE()
   -- Handle raid roster changes
@@ -355,10 +336,12 @@ GSE:RegisterChatCommand("gse", "GSSlash")
 --- Handle slash commands
 function GSE:GSSlash(input)
   if string.lower(input) == "showspec" then
-    local currentSpec = GSE.GetCurrentSpecID()
-    local currentSpecID, specname, specicon = GSE.GetCurrentSpecID()
-   -- local _, specname, specdescription, specicon, _, specrole, specclass = GetSpecializationInfoByID(currentSpecID)
-    GSE.Print(L["Your current Specialisation is "] .. currentSpecID .. ':' .. specname .. L["  The Alternative ClassID is "] .. currentclassId, GNOME)
+    if GSE.IsAscension and GSE.IsAscension() then
+      GSE.Print(L["Ascension detected: Global profile active."])
+    else
+      local currentSpecID, specname, specicon = GSE.GetCurrentSpecID()
+      GSE.Print(L["Your current Specialisation is "] .. currentSpecID .. ':' .. specname, GNOME)
+    end
   elseif string.lower(input) == "help" then
     PrintGnomeHelp()
   elseif string.lower(input) == "cleanorphans" or string.lower(input) == "clean" then
@@ -392,11 +375,20 @@ function GSE:GSSlash(input)
   elseif string.lower(input) == "compressstring" then
     GSE.GUICompressFrame:Show()
   elseif string.lower(input) == "loadsamples" then
-    if GSE.LoadDocumentedSampleMacros then
-      GSE.LoadDocumentedSampleMacros()
-      GSE.Print(L["Sample macros for your class have been loaded. Type /gse to view them."], GNOME)
+    if GSE.IsAscension and GSE.IsAscension() then
+      if GSE.Static.SampleMacros and GSE.Static.SampleMacros[0] then
+        GSE.ImportMacroCollection(GSE.Static.SampleMacros[0])
+        GSE.Print(L["Sample macros for Ascension have been loaded. Type /gse to view them."], GNOME)
+      else
+        GSE.Print(L["Ascension sample macros are not available."], GNOME)
+      end
     else
-      GSE.Print(L["Sample macros are not available."], GNOME)
+      if GSE.LoadDocumentedSampleMacros then
+        GSE.LoadDocumentedSampleMacros()
+        GSE.Print(L["Sample macros for your class have been loaded. Type /gse to view them."], GNOME)
+      else
+        GSE.Print(L["Sample macros are not available."], GNOME)
+      end
     end
   elseif string.lower(input) == "version" then
     GSE.Print(string.format(L["GSE Version: %s"], GSE.formatModVersion(GSE.VersionString)), GNOME)
@@ -414,110 +406,5 @@ function GSE:processReload(action, arg)
   if arg == "Samples" then
     GSE.LoadSampleMacros(GSE.GetCurrentClassID())
     GSE.Print(L["The Sample Macros have been reloaded."])
-  end
-end
-
-function GSE:OnEnable()
-  GSE.StartOOCTimer()
-end
-
---- Start the OOC Queue Timer
-function GSE.StartOOCTimer()
-  GSE.OOCTimer = GSE:ScheduleRepeatingTimer("ProcessOOCQueue", 1)
-end
-
---- Stop the OOC Queue Timer
-function GSE.StopOOCTimer()
-  GSE:CancelTimer(GSE.OOCTimer)
-  GSE.OOCTimer = nil
-end
-
-
-function GSE:ProcessOOCQueue()
-  while not InCombatLockdown() and #GSE.OOCQueue > 0 do
-    local v = table.remove(GSE.OOCQueue, 1)
-    if v then
-      local success, err = pcall(function()
-        if GSE.isEmpty(v.action) then
-          GSE.PrintDebugMessage("Invalid OOC Queue entry", "Events")
-          return
-        end
-
-        if v.action == "UpdateSequence" then
-          GSE.OOCUpdateSequence(v.name, v.macroversion)
-        elseif v.action == "Save" then
-          GSE.OOCAddSequenceToCollection(v.sequencename, v.sequence, v.classid)
-        elseif v.action == "Replace" then
-          if GSE.isEmpty(v.classid) or GSE.isEmpty(v.sequencename) then
-            GSE.Print("ERROR: Replace action missing classid or sequencename")
-            return
-          end
-
-          if GSE.isEmpty(GSELibrary[v.classid]) then
-            GSELibrary[v.classid] = {}
-          end
-
-          GSELibrary[v.classid][v.sequencename] = v.sequence
-          GSE.Print("Saved sequence: " .. v.sequencename .. " for class " .. v.classid)
-
-          if not GSE.isEmpty(v.sequence) and not GSE.isEmpty(v.sequence.MacroVersions) then
-            local activeVersion = v.sequence.Default or 1
-            if v.sequence.MacroVersions[activeVersion] then
-              GSE.OOCUpdateSequence(v.sequencename, v.sequence.MacroVersions[activeVersion])
-            end
-          end
-        elseif v.action == "openviewer" then
-          GSE.GUIShowViewer()
-        elseif v.action == "CheckMacroCreated" then
-          GSE.OOCCheckMacroCreated(v.sequencename, v.create)
-        end
-      end)
-
-      if not success then
-        GSE.PrintDebugMessage("Error processing OOC Queue item: " .. tostring(err), "Events")
-      end
-    end
-  end
-
-  if #GSE.OOCQueue == 0 then
-    GSE.StopOOCTimer()
-  end
-end
-
-function GSE.prepareTooltipOOCLine(tooltip, OOCEvent, row, oockey)
-  tooltip:SetCell(row, 1, L[OOCEvent.action], "LEFT", 1)
-  if OOCEvent.action == "UpdateSequence" then
-    tooltip:SetCell(row, 3, OOCEvent.name, "RIGHT", 1)
-  elseif OOCEvent.action == "Save" then
-    tooltip:SetCell(row, 3, OOCEvent.sequencename, "RIGHT", 1)
-  elseif OOCEvent.action == "Replace" then
-    tooltip:SetCell(row, 3, OOCEvent.sequencename, "RIGHT", 1)
-  elseif OOCEvent.action == "CheckMacroCreated" then
-    tooltip:SetCell(row, 3, OOCEvent.sequencename, "RIGHT", 1)
-  end
-  tooltip:SetLineScript(row, "OnMouseUp", function ()
-    GSE.OOCQueue[oockey] = nil
-  end)
-end
-
-function GSE.CheckOOCQueueStatus()
-  local output = ""
-  if GSE.isEmpty(GSE.OOCTimer) then
-    output = GSEOptions.UNKNOWN .. L["Paused"] .. Statics.StringReset
-  else
-    if InCombatLockdown() then
-      output = GSEOptions.TitleColour .. L["Paused - In Combat"] .. Statics.StringReset
-    else
-      output = GSEOptions.CommandColour .. L["Running"] .. Statics.StringReset
-    end
-  end
-  return output
-end
-
-function GSE.ToggleOOCQueue()
-  if GSE.isEmpty(GSE.OOCTimer) then
-    GSE.StartOOCTimer()
-  else
-    GSE.StopOOCTimer()
   end
 end
