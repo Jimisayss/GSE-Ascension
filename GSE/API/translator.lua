@@ -5,28 +5,43 @@ local GNOME = Statics.DebugModules["Translator"]
 local locale = GetLocale();
 local L = GSE.L
 
-if GetLocale() ~= "enUS" then
-  -- We need to load in temporarily the current locale translation tables.
-  -- we should also look at cacheing this
-  if GSE.isEmpty(GSE.TranslatorLanguageTables[Statics.TranslationKey][GetLocale()]) then
-    GSE.TranslatorLanguageTables[Statics.TranslationKey][GetLocale()] = {}
-    GSE.TranslatorLanguageTables[Statics.TranslationHash][GetLocale()] = {}
-    GSE.TranslatorLanguageTables[Statics.TranslationShadow][GetLocale()] = {}
-    GSE.PrintDebugMessage("Adding missing Language :" .. GetLocale(), GNOME )
+GSETranslatorCache = GSETranslatorCache or {}
+
+if locale ~= "enUS" then
+  if GSETranslatorCache[locale] then
+    GSE.TranslatorLanguageTables[Statics.TranslationKey][locale] = GSETranslatorCache[locale].key or {}
+    GSE.TranslatorLanguageTables[Statics.TranslationHash][locale] = GSETranslatorCache[locale].hash or {}
+    GSE.TranslatorLanguageTables[Statics.TranslationShadow][locale] = GSETranslatorCache[locale].shadow or {}
+  end
+
+  if GSE.isEmpty(GSE.TranslatorLanguageTables[Statics.TranslationKey][locale]) then
+    GSE.TranslatorLanguageTables[Statics.TranslationKey][locale] = {}
+    GSE.TranslatorLanguageTables[Statics.TranslationHash][locale] = {}
+    GSE.TranslatorLanguageTables[Statics.TranslationShadow][locale] = {}
+    GSE.PrintDebugMessage("Adding missing Language :" .. locale, GNOME )
     local i = 0
     for k,v in pairs(GSE.TranslatorLanguageTables[Statics.TranslationKey]["enUS"]) do
       GSE.PrintDebugMessage(i.. " " .. k .. " " ..v)
       local info = GSE.ResolveSpell(k)
       local spellname = info and info.name
       if spellname then
-        GSE.TranslatorLanguageTables[Statics.TranslationKey][GetLocale()][k] = spellname
-        GSE.TranslatorLanguageTables[Statics.TranslationHash][GetLocale()][spellname] = k
-        GSE.TranslatorLanguageTables[Statics.TranslationShadow][GetLocale()][spellname] = string.lower(k)
+        GSE.TranslatorLanguageTables[Statics.TranslationKey][locale][k] = spellname
+        GSE.TranslatorLanguageTables[Statics.TranslationHash][locale][spellname] = k
+        GSE.TranslatorLanguageTables[Statics.TranslationShadow][locale][spellname] = string.lower(k)
       end
       i = i + 1
     end
+    GSETranslatorCache[locale] = {
+      key = GSE.TranslatorLanguageTables[Statics.TranslationKey][locale],
+      hash = GSE.TranslatorLanguageTables[Statics.TranslationHash][locale],
+      shadow = GSE.TranslatorLanguageTables[Statics.TranslationShadow][locale]
+    }
     GSE.AdditionalLanguagesAvailable = true
   end
+end
+
+function GSE.ClearTranslatorCache()
+  GSETranslatorCache = {}
 end
 
 function GSE.ListCachedLanguages()

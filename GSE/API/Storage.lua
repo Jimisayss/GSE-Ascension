@@ -7,6 +7,12 @@ local GNOME = "Storage"
 local MAX_CHARACTER_MACROS = MAX_CHARACTER_MACROS or 18
 local MAX_ACCOUNT_MACROS = MAX_ACCOUNT_MACROS or 120
 
+GSE.OnClickImplementationCache = GSE.OnClickImplementationCache or {}
+
+function GSE.ClearOnClickImplementationCache()
+  GSE.OnClickImplementationCache = {}
+end
+
 
 --- Delete a sequence starting with the macro and then the sequence from the library
 function GSE.DeleteSequence(classid, sequenceName)
@@ -588,26 +594,32 @@ function GSE.OOCUpdateSequence(name,sequence)
     end
     tempseq = GSE.UnEscapeSequence(tempseq)
 
+    local pre = tempseq.PreMacro or {}
+    local post = tempseq.PostMacro or {}
     local executionseq = {}
+    local index = 0
     local pmcount = 0
-    if not GSE.isEmpty(tempseq.PreMacro) then
-      pmcount = table.getn(tempseq.PreMacro) + 1
+    if not GSE.isEmpty(pre) then
+      pmcount = #pre + 1
       gsebutton:SetAttribute('loopstart', pmcount)
-      for k,v in ipairs(tempseq.PreMacro) do
-        table.insert(executionseq, v)
+      for i = 1, #pre do
+        index = index + 1
+        executionseq[index] = pre[i]
       end
 
     end
 
-    for k,v in ipairs(tempseq) do
-      table.insert(executionseq, v)
+    for i = 1, #tempseq do
+      index = index + 1
+      executionseq[index] = tempseq[i]
     end
 
-    gsebutton:SetAttribute('loopstop', table.getn(executionseq))
+    gsebutton:SetAttribute('loopstop', #executionseq)
 
-    if not GSE.isEmpty(tempseq.PostMacro) then
-      for k,v in ipairs(tempseq.PostMacro) do
-        table.insert(executionseq, v)
+    if not GSE.isEmpty(post) then
+      for i = 1, #post do
+        index = index + 1
+        executionseq[index] = post[i]
       end
 
     end
@@ -1356,9 +1368,15 @@ end
 
 --- This funcion returns the actual onclick implementation
 function GSE.PrepareOnClickImplementation(sequence)
-  local returnstring = (GSEOptions.DebugPrintModConditionsOnKeyPress and Statics.PrintKeyModifiers or "" )
-  returnstring = returnstring .. GSE.GetMacroResetImplementation()
-  returnstring = returnstring  .. format(Statics.OnClick, GSE.PrepareStepFunction(sequence.StepFunction,  GSE.IsLoopSequence(sequence)))
+  local reset = GSE.GetMacroResetImplementation()
+  local key = (sequence.StepFunction or Statics.Sequential) .. ":" .. tostring(GSE.IsLoopSequence(sequence)) .. ":" .. tostring(GSEOptions.DebugPrintModConditionsOnKeyPress) .. ":" .. reset
+  if GSE.OnClickImplementationCache[key] then
+    return GSE.OnClickImplementationCache[key]
+  end
+  local returnstring = (GSEOptions.DebugPrintModConditionsOnKeyPress and Statics.PrintKeyModifiers or "")
+  returnstring = returnstring .. reset
+  returnstring = returnstring .. format(Statics.OnClick, GSE.PrepareStepFunction(sequence.StepFunction, GSE.IsLoopSequence(sequence)))
+  GSE.OnClickImplementationCache[key] = returnstring
   return returnstring
 end
 

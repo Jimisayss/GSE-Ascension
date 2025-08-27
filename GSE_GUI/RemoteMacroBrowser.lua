@@ -149,7 +149,7 @@ function GSE.ShowRemoteWindow(SequenceList, GSEUser)
             linegroup1:AddChild(classbutton)
         end
         local classLabel = AceGUI:Create("Label")
-        classLabel:SetText(Statics.SpecIDList[lClassID])
+        classLabel:SetText(GSE.GetDynamicSpecList()[lClassID])
         linegroup1:AddChild(classLabel)
         contentcontainer:AddChild(linegroup1)
         for name, value in pairs(v) do
