@@ -12,9 +12,7 @@ embeds.xml
 Lib\LibDataBroker-1.1\LibDataBroker-1.1.lua
 Lib\LibQTip-1.0\LibQTip-1.0.lua
 Lib\AceGUI-3.0-Completing-EditBox\AceGUI-3.0-Completing-EditBox.lua
-
 Lib\AceGUI-3.0-Selectable-Panel\AceGUI-3.0-Selectable-Panel.lua
-
 Lib\LibStub\LibStub.lua
 Lib\CallbackHandler-1.0\CallbackHandler-1.0.xml
 Lib\AceAddon-3.0\AceAddon-3.0.xml
@@ -34,8 +32,6 @@ Lib\AceSerializer-3.0\AceSerializer-3.0.xml
 Lib\AceHook-3.0\AceHook-3.0.xml
 Lib\LibDBIcon-1.0\LibDBIcon-1.0.lua
 Lib\LibCompress\lib.xml
-#Lib\LibStub\LibStub.lua -- Already loaded above
-#Lib\CallbackHandler-1.0\CallbackHandler-1.0.xml -- Already loaded above
 Lib\LibDataBroker-1.1\LibDataBroker-1.1.lua
 Lib\LibParse\Load.xml
 
@@ -55,9 +51,6 @@ Localization\ModL_zhTW.lua
 # Startup
 API\Init.lua
 API\Statics.lua
-API\Shims.lua
-API\WotLK.lua
-API\Ascension.lua
 API\InitialOptions.lua
 
 # Spells Language Strings
@@ -65,21 +58,27 @@ Localization\enUS.lua
 Localization\enUSHash.lua
 Localization\enUSSHADOW.lua
 
+# Core Modules - Must be loaded before API files that depend on them.
+API\WotLK.lua
+Core\SpellCache.lua
+Core\CombatQueue.lua
 
-#storage and core
+# API and Storage
+API\Shims.lua
+API\Ascension.lua
 API\StaticPopup.lua
 API\StringFunctions.lua
 API\CharacterFunctions.lua
-SampleMacros.lua
-SampleMacros_Documented.lua
-Samples\Ascension.lua
 API\Storage.lua
-API\Translator.lua
+API\translator.lua
 API\Plugins.lua
 API\Serialisation.lua
 API\Options.lua
-API\Events.lua
 
-# Core Modules
-Core\CombatQueue.lua
-Core\SpellCache.lua
+# Sample Macros
+SampleMacros.lua
+SampleMacros_Documented.lua
+Samples\Ascension.lua
+
+# Event Handler - Load last
+API\Events.lua
