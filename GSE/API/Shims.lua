@@ -22,18 +22,28 @@ end
 -- C_Timer does not exist in 3.3.5a
 if not C_Timer then
   C_Timer = {}
-  function C_Timer.After(delay, func)
-    local frame = CreateFrame("Frame")
-    local elapsed = 0
-    frame:SetScript("OnUpdate", function(self, e)
-      elapsed = elapsed + e
-      if elapsed >= delay then
-        self:SetScript("OnUpdate", nil)
-        if type(func) == "function" then
-          func()
+  local timers = {}
+  local frame = CreateFrame("Frame")
+
+  frame:SetScript("OnUpdate", function(self, e)
+    for i = #timers, 1, -1 do
+      local timer = timers[i]
+      timer.elapsed = (timer.elapsed or 0) + e
+      if timer.elapsed >= timer.delay then
+        if type(timer.func) == "function" then
+          pcall(timer.func)
         end
+        table.remove(timers, i)
       end
-    end)
+    end
+  end)
+
+  function C_Timer.After(delay, func)
+    table.insert(timers, {
+      delay = delay,
+      func = func,
+      elapsed = 0
+    })
   end
 end
 

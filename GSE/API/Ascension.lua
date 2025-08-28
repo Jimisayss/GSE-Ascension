@@ -25,8 +25,8 @@ function GSE.ResolveSpell(ref)
     lookup = tonumber(ref)
   end
   local name, _, icon, _, _, _, spellId = GetSpellInfo(lookup)
-  if not name then
-    GSE.Log("WARN", "Unknown spell " .. tostring(ref))
+  if not name or not icon or type(icon) ~= "string" then
+    GSE.Log("WARN", "Unknown spell or invalid icon for " .. tostring(ref))
     spellCache[ref] = nil
     return nil
   end

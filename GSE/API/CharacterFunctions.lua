@@ -21,7 +21,7 @@ function GSE.GetCurrentSpecID()
   -- NotifyInspect(unit)
 -- end
  -- local currentSpec = GetSpecialization() --local index = GetActiveTalentGroup(isInspect, isPet);
-  --return currentSpec and select(1, GetSpecializationInfo(currentSpec)) or 0 ---specid Statics.wotlkSpecIDList 
+  --return currentSpec and select(1, GetSpecializationInfo(currentSpec)) or 0 ---specid Statics.wotlkSpecIDList
 
 --local name, icon, pointsSpent, background, previewPointsSpent = GetTalentTabInfo(tab,isInspect,isPet,activeSpec);
 
@@ -58,10 +58,10 @@ end
 		isClass1 = isClass1 and string.upper(isClass1) or ""
 		local st1,ed1=string.find(searchStr,isClass)
 		local st2,ed2=string.find(searchStr,isClass1)
-			if(st~=nil) then 
-				if(st1~=nil or st2~=nil) then 
-					specid=k 
-				end	
+			if(st~=nil) then
+				if(st1~=nil or st2~=nil) then
+					specid=k
+				end
 			end
 	  end
   return specid,name1,icon;
@@ -73,8 +73,8 @@ function GSE.GetCurrentClassID()
   local class1, class = UnitClass("player")
   local currentclassId1=""
   for k,v in pairs(Statics.wotlkClassIDList) do
-	if (string.upper(v)==string.upper(class) or string.upper(v)==string.upper(class1)) then 
-		currentclassId1=k 
+	if (string.upper(v)==string.upper(class) or string.upper(v)==string.upper(class1)) then
+		currentclassId1=k
 	end
   end
  -- DEFAULT_CHAT_FRAME:AddMessage("currentclassId1 "..currentclassId1)
@@ -93,13 +93,13 @@ function GSE.GetClassIDforSpec(specid)
 --classid
 	local value,classid,class;
 	for k,v in pairs(Statics.wotlkClassIDList) do
-		if (k==specid) then 
-			classid=k  
+		if (k==specid) then
+			classid=k
 		end
 	end
-  
+
   for k,v in pairs(Statics.wotlkSpecIDList) do
-	if (k==specid) then 
+	if (k==specid) then
 		--value=Statics.wotlkSpecIDList[specID]
 		local idx=string.find(v," - ")
 		if(idx~=nil) then
@@ -108,8 +108,8 @@ function GSE.GetClassIDforSpec(specid)
 		--print(v,last,last[#last])
 	    --local class=string.upper(last[#last])
 		for k1,v1 in pairs(Statics.wotlkClassIDList) do
-			if (string.upper(v1)==string.upper(class)) then 
-			classid=k1  
+			if (string.upper(v1)==string.upper(class)) then
+			classid=k1
 			end
 		end
 	end
@@ -117,7 +117,7 @@ function GSE.GetClassIDforSpec(specid)
 	--local last = string.split( value, "% " )
 	--local class=string.upper(last[#last])
 
-  
+
   -- local classid = 0
   -- if specid <= 12 then
     -- classid = specid
@@ -135,55 +135,40 @@ function GSE.GetClassIDforSpec(specid)
 end
 
 function GSE.GetClassIcon(classid)
-  local classicon = {}
-  -- classicon[1] = "Interface\\Icons\\inv_sword_27" -- Warrior
-  -- classicon[2] = "Interface\\Icons\\ability_thunderbolt" -- Paladin
-  -- classicon[3] = "Interface\\Icons\\inv_weapon_bow_07" -- Hunter
-  -- classicon[4] = "Interface\\Icons\\inv_throwingknife_04" -- Rogue
-  -- classicon[5] = "Interface\\Icons\\inv_staff_30" -- Priest
-  -- classicon[6] = "Interface\\Icons\\inv_sword_27" -- Death Knight
-  -- classicon[7] = "Interface\\Icons\\inv_jewelry_talisman_04" -- SWhaman
-  -- classicon[8] = "Interface\\Icons\\inv_staff_13" -- Mage
-  -- classicon[9] = "Interface\\Icons\\spell_nature_drowsy" -- Warlock
- -- classicon[10] = "Interface\\Icons\\Spell_Holy_FistOfJustice" -- Monk
-  -- classicon[11] = "Interface\\Icons\\inv_misc_monsterclaw_04" -- Druid
- --classicon[12] = "Interface\\Icons\\INV_Weapon_Glave_01" -- DEMONHUNTER
-
-	
-	
-   classicon[1] = "Interface\\Icons\\inv_sword_27" -- Warrior
-  classicon[2] = "Interface\\Icons\\ability_thunderbolt" -- Paladin
-  classicon[3] = "Interface\\Icons\\inv_weapon_bow_07" -- Hunter
-  classicon[4] = "Interface\\Icons\\inv_throwingknife_04" -- Rogue
-  classicon[5] = "Interface\\Icons\\INV_Staff_30" -- Priest
-  classicon[6] = "Interface\\Icons\\Spell_Deathknight_ClassIcon" -- Death Knight
-  classicon[7] = "Interface\\Icons\\Spell_Nature_BloodLust" -- SWhaman
-  classicon[8] = "Interface\\Icons\\INV_Staff_13" -- Mage
-  classicon[9] = "Interface\\Icons\\Spell_Nature_FaerieFire" -- Warlock
-	classicon[10] = "Interface\\Icons\\INV_Misc_MonsterClaw_04" -- Monk
-  classicon[11] = "Interface\\Icons\\INV_Misc_MonsterClaw_04" -- Druid
-	classicon[12] = "Interface\\Icons\\inv_weapon_bow_07" -- DEMONHUNTER
+  local classicon = {
+    [1] = "Interface\\Icons\\inv_sword_27", -- Warrior
+    [2] = "Interface\\Icons\\ability_thunderbolt", -- Paladin
+    [3] = "Interface\\Icons\\inv_weapon_bow_07", -- Hunter
+    [4] = "Interface\\Icons\\inv_throwingknife_04", -- Rogue
+    [5] = "Interface\\Icons\\INV_Staff_30", -- Priest
+    [6] = "Interface\\Icons\\Spell_Deathknight_ClassIcon", -- Death Knight
+    [7] = "Interface\\Icons\\Spell_Nature_BloodLust", -- Shaman
+    [8] = "Interface\\Icons\\INV_Staff_13", -- Mage
+    [9] = "Interface\\Icons\\Spell_Nature_FaerieFire", -- Warlock
+    [10] = "Interface\\Icons\\INV_Misc_MonsterClaw_04", -- Monk
+    [11] = "Interface\\Icons\\INV_Misc_MonsterClaw_04", -- Druid
+    [12] = "Interface\\Icons\\inv_weapon_bow_07" -- DEMONHUNTER
+  }
   return classicon[classid]
-
 end
 
 --- Check if the specID provided matches the plauers current class.
 function GSE.isSpecIDForCurrentClass(specID)
 for k,v in pairs(Statics.wotlkSpecIDList) do
-	if (k==specID) then 
+	if (k==specID) then
 		local value=Statics.wotlkSpecIDList[specID]
 		if value then
 			local last = string.split( value, "% " )
 	    local class=string.upper(last[#last])
 		local currentenglishclass, currentclassDisplayName = UnitClass("player")
-		
+
 		currentenglishclass=string.upper(currentenglishclass)
 		local currentclassId=string.upper(currentclassDisplayName)
-		
+
 		for k1,v1 in pairs(Statics.wotlkClassIDList) do
 			if (string.upper(v1)==string.upper(class)) then currentclassId=k1 end
 		end
-		
+
 		return (class==currentenglishclass or specID==currentclassId)
 		end
 	end
@@ -230,19 +215,6 @@ end
 function GSE.GetCharacterName()
   return  GetUnitName("player", true) .. '@' .. GetRealmName()
 end
-
---- Returns the current Talent Selections as a string
-function GSE.GetCurrentTalents()
-  local talents = ""
-    for talentTier = 1, 7 do
-  --for talentTier = 1, MAX_TALENT_TIERS do
-    --local available, selected = GetTalentTierInfo(talentTier, 1)
-   -- talents = talents .. (available and selected or "?" .. ",")
-   talents = talents .. ("?" .. ",")
-  end
-  return talents
-end
-
 
 --- Experimental attempt to load a WeakAuras string.
 function GSE.LoadWeakauras(str)
