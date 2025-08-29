@@ -416,8 +416,14 @@ end
 
 function GSE:processReload(action, arg)
   if arg == "Samples" then
-    GSE.LoadSampleMacros(GSE.GetCurrentClassID())
-    GSE.Print(L["The Sample Macros have been reloaded."])
+    if not GSEOptions.SampleMacrosLoaded then
+      GSEOptions.SampleMacrosLoaded = {}
+    end
+    if not GSEOptions.SampleMacrosLoaded[GSE.GetCurrentClassID()] then
+      GSE.LoadSampleMacros(GSE.GetCurrentClassID())
+      GSEOptions.SampleMacrosLoaded[GSE.GetCurrentClassID()] = true
+      GSE.Print(L["The Sample Macros have been loaded for the first time."])
+    end
   end
 end
 
