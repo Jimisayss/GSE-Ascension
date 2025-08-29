@@ -32,3 +32,7 @@ A compatibility layer (`AscensionCompat.lua`) was created to handle API differen
 
 *   The `[known:spell]` macro conditional is not supported in this version as its availability in 3.3.5 is not guaranteed. Sequences should not rely on it.
 *   The addon has been tested on the Ascension client (3.3.5), but may have issues on other private servers with different client modifications.
+
+## Hotfix 1
+
+*   Added shims for `ShouldHoldToCast` and `HasRuneUI` to prevent errors when using other addons like Bartender4 and the Ascension core UI.

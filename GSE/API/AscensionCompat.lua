@@ -84,6 +84,19 @@ PlayerUtil = {}
 C_Spell.GetSpellInfo = Asc.GetSpellInfo
 C_Spell.IsSpellUsable = Asc.IsUsableSpell
 C_Spell.GetSpellCooldown = Asc.GetSpellCooldown
+C_Spell.ShouldHoldToCast = function() return false end -- Shim for Hold to Cast API
+
 C_SpecializationInfo.GetSpells = function() return {} end -- Return empty table to avoid errors
 PlayerUtil.GetCurrentClassId = function() return GSE.GetCurrentClassID() end
 PlayerUtil.GetSpecName = function() return "" end
+
+-- ============================================================================
+-- Global Shims
+-- ============================================================================
+
+if not HasRuneUI then
+  function HasRuneUI()
+    local _, class = UnitClass("player")
+    return class == "DEATHKNIGHT"
+  end
+end
