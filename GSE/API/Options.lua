@@ -75,28 +75,12 @@ function GSE.GetOptionsTable()
             get = function(info) return GSEOptions.deleteOrphansOnLogout end,
             order = 301
           },
-          overflowPersonalMacros = {
-            name = L["Use Global Account Macros"],
-            desc = L["When creating a macro, if there is not a personal character macro space, create an account wide macro."],
+          autocreatestub = {
+            name = L["Auto Create Macro Stubs"],
+            desc = L["When loading or creating a sequence, automatically create the Macro Stub in Account Macros"],
             type = "toggle",
-            set = function(info,val) GSEOptions.overflowPersonalMacros = val end,
-            get = function(info) return GSEOptions.overflowPersonalMacros end,
-            order = 302
-          },
-          autocreateclassstub = {
-            name = L["Auto Create Class Macro Stubs"],
-            desc = L["When loading or creating a sequence, if it is a macro of the same class automatically create the Macro Stub"],
-            type = "toggle",
-            set = function(info,val) GSEOptions.autoCreateMacroStubsClass = val end,
-            get = function(info) return GSEOptions.autoCreateMacroStubsClass end,
-            order = 303
-          },
-          autocreateglobalstub = {
-            name = L["Auto Create Global Macro Stubs"],
-            desc = L["When loading or creating a sequence, if it is a global or the macro has an unknown specID automatically create the Macro Stub in Account Macros"],
-            type = "toggle",
-            set = function(info,val) GSEOptions.autoCreateMacroStubsGlobal = val end,
-            get = function(info) return GSEOptions.autoCreateMacroStubsGlobal end,
+            set = function(info,val) GSEOptions.autoCreateMacroStubs = val end,
+            get = function(info) return GSEOptions.autoCreateMacroStubs end,
             order = 304
           },
           useQuestionMark = {
@@ -111,22 +95,6 @@ function GSE.GetOptionsTable()
             type = "header",
             name = L["Filter Macro Selection"],
             order = 400
-          },
-          showAllMacros = {
-            name = L["Show All Macros in Editor"],
-            desc = L["By setting this value the Sequence Editor will show every macro for every class."],
-            type = "toggle",
-            set = function(info,val) GSEOptions.filterList["All"] = val end,
-            get = function(info) return GSEOptions.filterList["All"] end,
-            order = 410
-          },
-          showClassMacros = {
-            name = L["Show Class Macros in Editor"],
-            desc = L["By setting this value the Sequence Editor will show every macro for your class.  Turning this off will only show the class macros for your current specialisation."],
-            type = "toggle",
-            set = function(info,val) GSEOptions.filterList["Class"] = val end,
-            get = function(info) return GSEOptions.filterList["Class"] end,
-            order = 420
           },
           showGlobalMacros = {
             name = L["Show Global Macros in Editor"],

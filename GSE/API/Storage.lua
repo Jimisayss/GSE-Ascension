@@ -225,7 +225,7 @@ end
 
 
 --- Add a macro for a sequence amd register it in the list of known sequences
-function GSE.CreateMacroIcon(sequenceName, icon, forceglobalstub)
+function GSE.CreateMacroIcon(sequenceName, icon)
   local sequenceIndex = GetMacroIndexByName(sequenceName)
   local numAccountMacros, numCharacterMacros = GetNumMacros()
   if sequenceIndex > 0 then
@@ -233,12 +233,10 @@ function GSE.CreateMacroIcon(sequenceName, icon, forceglobalstub)
     GSE.PrintDebugMessage("Moving on - macro for " .. sequenceName .. " already exists.", GNOME)
   else
     -- Create Sequence as a player sequence
-    if numCharacterMacros >= MAX_CHARACTER_MACROS - 1 and not GSEOptions.overflowPersonalMacros and not forceglobalstub then
-      GSE.Print(GSEOptions.AuthorColour .. L["Close to Maximum Personal Macros.|r  You can have a maximum of "].. MAX_CHARACTER_MACROS .. L[" macros per character.  You currently have "] .. GSEOptions.EmphasisColour .. numCharacterMacros .. L["|r.  As a result this macro was not created.  Please delete some macros and reenter "] .. GSEOptions.CommandColour .. L["/gs|r again."], GNOME)
-    elseif numAccountMacros >= MAX_ACCOUNT_MACROS - 1 and GSEOptions.overflowPersonalMacros then
-      GSE.Print(L["Close to Maximum Macros.|r  You can have a maximum of "].. MAX_CHARACTER_MACROS .. L[" macros per character.  You currently have "] .. GSEOptions.EmphasisColour .. numCharacterMacros .. L["|r.  You can also have a  maximum of "] .. MAX_ACCOUNT_MACROS .. L[" macros per Account.  You currently have "] .. GSEOptions.EmphasisColour .. numAccountMacros .. L["|r. As a result this macro was not created.  Please delete some macros and reenter "] .. GSEOptions.CommandColour .. L["/gs|r again."], GNOME)
+    if numAccountMacros >= MAX_ACCOUNT_MACROS - 1 then
+      GSE.Print(L["Close to Maximum Macros.|r  You can have a maximum of "].. MAX_ACCOUNT_MACROS .. L[" macros per Account.  You currently have "] .. GSEOptions.EmphasisColour .. numAccountMacros .. L["|r. As a result this macro was not created.  Please delete some macros and reenter "] .. GSEOptions.CommandColour .. L["/gs|r again."], GNOME)
     else
-     local sequenceid = CreateMacro(sequenceName, 1, GSE.CreateMacroString(sequenceName), (forceglobalstub and false or GSE.SetMacroLocation()) )
+     local sequenceid = CreateMacro(sequenceName, 1, GSE.CreateMacroString(sequenceName), GSE.SetMacroLocation())
 	end
   end
 end
@@ -808,12 +806,8 @@ end
 
 --- Return whether to store the macro in Personal Character Macros or Account Macros
 function GSE.SetMacroLocation()
-  local numAccountMacros, numCharacterMacros = GetNumMacros()
-  local returnval = 1
-  if numCharacterMacros >= MAX_CHARACTER_MACROS - 1 and GSEOptions.overflowPersonalMacros then
-   returnval = nil
-  end
-  return returnval
+  -- Always use account-wide macros for Ascension
+  return nil
 end
 
 
@@ -942,34 +936,10 @@ end
 function GSE.GetSequenceNames()
   local keyset={}
   for k,v in pairs(GSELibrary) do
-    if GSE.isEmpty(GSEOptions.filterList) then
-      GSEOptions.filterList = {}
-      GSEOptions.filterList[Statics.Spec] = true
-      GSEOptions.filterList[Statics.Class] = true
-      GSEOptions.filterList[Statics.All] = false
-      GSEOptions.filterList[Statics.Global] = true
-    end
-    if GSEOptions.filterList[Statics.All] or k == GSE.GetCurrentClassID()  then
-      for i,j in pairs(GSELibrary[k]) do
-        if k == GSE.GetCurrentClassID() and GSEOptions.filterList["Class"] then
-          keyset[k .. "," .. i] = i
-        elseif k == GSE.GetCurrentClassID() and not GSEOptions.filterList["Class"] then
-          if j.SpecID == GSE.GetCurrentSpecID() or j.SpecID == GSE.GetCurrentClassID() then
-            keyset[k .. "," .. i] = i
-          end
-        else
-          keyset[k .. "," .. i] = i
-        end
-      end
-    else
-      if k == 0 and GSEOptions.filterList[Statics.Global] then
-        for i,j in pairs(GSELibrary[k]) do
-          keyset[k .. "," .. i] = i
-        end
-      end
+    for i,j in pairs(GSELibrary[k]) do
+      keyset[k .. "," .. i] = i
     end
   end
-
   return keyset
 end
 

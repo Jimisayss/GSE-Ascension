@@ -205,7 +205,9 @@ function GSE:ADDON_LOADED(event, addon)
   GSE:ZONE_CHANGED_NEW_AREA()
   
   -- Ensure all macro strings are updated after loading
-  GSE.UpdateMacroString()
+  local vals = {}
+  vals.action = "UpdateMacroString"
+  table.insert(GSE.OOCQueue, vals)
   
   GSE:SendMessage(Statics.CoreLoadedMessage)
 
@@ -384,7 +386,9 @@ function GSE:GSSlash(input)
     StaticPopup_Show ("GSE_ConfirmReloadUIDialog")
   elseif string.lower(input) == "updatemacrostrings" then
     -- Convert macros to new format in a one off run.
-    GSE.UpdateMacroString()
+    local vals = {}
+    vals.action = "UpdateMacroString"
+    table.insert(GSE.OOCQueue, vals)
   elseif string.lower(input) == "movelostmacros" then
     GSE.MoveMacroToClassFromGlobal()
   elseif string.lower(input) == "checkmacrosforerrors" then
@@ -470,6 +474,8 @@ function GSE:ProcessOOCQueue()
           GSE.GUIShowViewer()
         elseif v.action == "CheckMacroCreated" then
           GSE.OOCCheckMacroCreated(v.sequencename, v.create)
+        elseif v.action == "UpdateMacroString" then
+          GSE.UpdateMacroString()
         end
       end)
 

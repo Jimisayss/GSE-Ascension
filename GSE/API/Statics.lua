@@ -69,59 +69,12 @@ Statics.wotlkClassIDList = {
   [8] = "Mage",
   [9] = "Warlock",
   --[10] = "Monk",
-  [11] = "Druid",
+  [11] = "Hero",
  -- [12] = "Demon Hunter",
 }
 Statics.wotlkSpecIDList = {
   [0] = "Global",
-  [1] = "Warrior",
-  [2] = "Paladin",
-  [3] = "Hunter",
-  [4] = "Rogue",
-  [5] = "Priest",
-  [6] = "DeathKnight",
-  [7] = "Shaman",
-  [8] = "Mage",
-  [9] = "Warlock",
- --- [10] = "Monk",
-  [11] = "Druid",
- --- [12] = "Demon Hunter",
-  [62] = "Arcane - Mage",
-  [63] = "Fire - Mage",
-  [64] = "Frost - Mage",
-  [65] = "Holy - Paladin",
-  [66] = "Protection - Paladin",
-  [70] = "Retribution - Paladin",
-  [71] = "Arms - Warrior",
-  [72] = "Fury - Warrior",
-  [73] = "Protection - Warrior",
-  [102] = "Balance - Druid",
-  [103] = "Feral - Druid",
----  [104] = "Guardian - Druid",
-  [105] = "Restoration - Druid",
-  [250] = "Blood - DeathKnight",
-  [251] = "Frost - DeathKnight",
-  [252] = "Unholy - DeathKnight",
-  [253] = "Beast Mastery - Hunter",
-  [254] = "Marksmanship - Hunter",
-  [255] = "Survival - Hunter",
-  [256] = "Discipline - Priest",
-  [257] = "Holy - Priest",
-  [258] = "Shadow - Priest",
-  [259] = "Assassination - Rogue",
-  [260] = "Combat - Rogue",
-  [261] = "Subtlety - Rogue",
-  [262] = "Elemental - Shaman",
-  [263] = "Enhancement - Shaman",
-  [264] = "Restoration - Shaman",
-  [265] = "Affliction - Warlock",
-  [266] = "Demonology - Warlock",
-  [267] = "Destruction - Warlock",
- --- [268] = "Brewmaster",
----  [269] = "Windwalker",
-  ---[270] = "Mistweaver",
----[577] = "Havoc",
----  [581] = "Vengeance",
+  [11] = "Hero",
 }
 
 
@@ -132,16 +85,28 @@ Statics.Priority = "Priority"
 Statics.Sequential = "Sequential"
 
 --- <code>GSStaticPriority</code> is a static step function that goes 1121231234123451234561234567
+--- <code>GSStaticPriority</code> is a static step function that goes 1->1-2->1-2-3->1-2-3-4
 --    use this like StepFunction = GSStaticPriority, in a macro
 --    This overides the sequential behaviour that is standard in GS
 Statics.PriorityImplementation = [[
-  limit = limit or 1
-  if step == limit then
-    limit = limit % #macros + 1
-    step = 1
-  else
-    step = step % #macros + 1
+  local prio_step = self:GetAttribute('prio_step') or 1
+  local prio_limit = self:GetAttribute('prio_limit') or 1
+
+  if prio_step > prio_limit then
+    prio_step = 1
+    prio_limit = prio_limit + 1
   end
+
+  if prio_limit > #macros then
+    prio_limit = 1
+    prio_step = 1
+  end
+
+  step = prio_step
+  prio_step = prio_step + 1
+
+  self:SetAttribute('prio_step', prio_step)
+  self:SetAttribute('prio_limit', prio_limit)
 ]]
 
 --- <code>GSStaticLoopPriority</code> is a static step function that goes 1121231234123451234561234567
@@ -216,6 +181,8 @@ print("GetMouseButtonClicked() " .. GetMouseButtonClicked() )
 
 Statics.OnClick = [=[
 local step = self:GetAttribute('step')
+local prio_step = self:GetAttribute('prio_step') or 1
+local prio_limit = self:GetAttribute('prio_limit') or 1
 local loopstart = self:GetAttribute('loopstart') or 1
 local loopstop = self:GetAttribute('loopstop') or #macros
 local loopiter = self:GetAttribute('loopiter') or 1
@@ -225,6 +192,8 @@ loopstop = tonumber(loopstop)
 loopiter = tonumber(loopiter)
 looplimit = tonumber(looplimit)
 step = tonumber(step)
+prio_step = tonumber(prio_step)
+prio_limit = tonumber(prio_limit)
 self:SetAttribute('macrotext', self:GetAttribute('KeyPress') .. "\n" .. macros[step] .. "\n" .. self:GetAttribute('KeyRelease'))
 %s
 if not step or not macros[step] then -- User attempted to write a step method that doesn't work, reset to 1
@@ -233,6 +202,8 @@ if not step or not macros[step] then -- User attempted to write a step method th
 end
 self:SetAttribute('step', step)
 self:SetAttribute('loopiter', loopiter)
+self:SetAttribute('prio_step', prio_step)
+self:SetAttribute('prio_limit', prio_limit)
 --self:CallMethod('UpdateIcon')
 ]=]
 
@@ -292,6 +263,8 @@ Statics.MacroResetSkeleton = [[
 if %s then
   self:SetAttribute('step', 1)
   self:SetAttribute('loopiter', 1)
+  self:SetAttribute('prio_step', 1)
+  self:SetAttribute('prio_limit', 1)
 end
 ]]
 

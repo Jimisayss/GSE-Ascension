@@ -1,6 +1,6 @@
 ## Interface: 30300
-## Title: GSE - Ascension
-## Notes: Ascension compatible macro sequencer.
+## Title: GSE - Ascension (Classless)
+## Notes: Gnome Sequencer Enhanced for Project Ascension (3.3.5a). All classes are treated as Hero. No class filtering.
 ## Author: TimothyLuke, Gummed, cerberus
 ## Version: 2204-wotlk
 ## SavedVariables: GSEOptions GSELibrary GSETranslatorCache
