@@ -93,6 +93,7 @@ function GSE.SetDefaultOptions()
   GSEOptions.showGSEUsers = false
   GSEOptions.showGSEoocqueue = false
   GSEOptions.UseVerboseFormat = true
+  GSEOptions.AscensionDebug = false -- Ascension: Toggle for debug prints
   GSE.resetMacroResetModifiers()
 end
 

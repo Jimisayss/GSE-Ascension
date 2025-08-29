@@ -56,6 +56,7 @@ Localization\ModL_zhTW.lua
 API\Init.lua
 API\Statics.lua
 API\Shims.lua
+API\AscensionCompat.lua
 API\Ascension.lua
 API\InitialOptions.lua
 

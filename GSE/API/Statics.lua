@@ -68,7 +68,7 @@ Statics.wotlkClassIDList = {
   [7] = "Shaman",
   [8] = "Mage",
   [9] = "Warlock",
-  --[10] = "Monk",
+  [10] = "Hero", -- Ascension Classless
   [11] = "Druid",
  -- [12] = "Demon Hunter",
 }
@@ -83,7 +83,7 @@ Statics.wotlkSpecIDList = {
   [7] = "Shaman",
   [8] = "Mage",
   [9] = "Warlock",
- --- [10] = "Monk",
+  [10] = "Hero", -- Ascension Classless
   [11] = "Druid",
  --- [12] = "Demon Hunter",
   [62] = "Arcane - Mage",
@@ -292,6 +292,7 @@ Statics.MacroResetSkeleton = [[
 if %s then
   self:SetAttribute('step', 1)
   self:SetAttribute('loopiter', 1)
+  self:SetAttribute('priorityPos', 1)
 end
 ]]
 

@@ -11,74 +11,59 @@ function GSE.GetSpecialization()
 return GSE.GetCurrentSpecID()
 end
 function GSE.GetCurrentSpecID()
---local  name, iconTexture, pointsSpent, background, previewPointsSpent = GetTalentTabInfo(tabIndex[, inspect[, isPet]][, talentGroup])
--- if event == "INSPECT_READY" then
-  -- local spec = ""
-  -- _, name = GetTalentTabInfo(GetPrimaryTalentTree(GetActiveTalentGroup()))
-  -- spec = name
-  -- return spec
--- else
-  -- NotifyInspect(unit)
--- end
- -- local currentSpec = GetSpecialization() --local index = GetActiveTalentGroup(isInspect, isPet);
-  --return currentSpec and select(1, GetSpecializationInfo(currentSpec)) or 0 ---specid Statics.wotlkSpecIDList 
+  -- Ascension: Return a fixed "Hero" spec ID if on Ascension, otherwise use original logic.
+  if GSE.IsAscension() then
+    return 10, "Hero", "INV_MISC_QUESTIONMARK"
+  end
 
---local name, icon, pointsSpent, background, previewPointsSpent = GetTalentTabInfo(tab,isInspect,isPet,activeSpec);
-
-
+  -- Original logic for non-Ascension clients
   local activeSpec = GetActiveTalentGroup()
-local maxpointspents=0
-local  primarytree=0
-----print(GetTalentTabInfo(activeTalentGroup))
-for tab = 1, GetNumTalentTabs() do
-   local tabname, tabicon, nopointsSpent, tabbackground, tabpreviewPointsSpent = GetTalentTabInfo(tab,false,false,activeSpec)
-   if (nopointsSpent>maxpointspents) then
-      maxpointspents=nopointsSpent
-      primarytree=tab
-   end
-   if (primarytree==0) then
-      primarytree=1
-   end
-end
+  local maxpointspents=0
+  local  primarytree=0
+  for tab = 1, GetNumTalentTabs() do
+     local tabname, tabicon, nopointsSpent, tabbackground, tabpreviewPointsSpent = GetTalentTabInfo(tab,false,false,activeSpec)
+     if (nopointsSpent>maxpointspents) then
+        maxpointspents=nopointsSpent
+        primarytree=tab
+     end
+     if (primarytree==0) then
+        primarytree=1
+     end
+  end
 
-	local name1,icon=GetTalentTabInfo(primarytree,false,false,activeSpec);
-	if name1 then
-		name1=string.upper(name1)
-	else
-		name1 = ""
-	end
+  local name1,icon=GetTalentTabInfo(primarytree,false,false,activeSpec);
+  if name1 then
+    name1=string.upper(name1)
+  else
+    name1 = ""
+  end
   local specid;
 
-	  for k,v in pairs(Statics.wotlkSpecIDList) do
-
-		local searchStr = v and string.upper(v) or ""
-		local st,ed=string.find(searchStr,name1)
-		local isClass,isClass1=UnitClass("player")
-		isClass = isClass and string.upper(isClass) or ""
-		isClass1 = isClass1 and string.upper(isClass1) or ""
-		local st1,ed1=string.find(searchStr,isClass)
-		local st2,ed2=string.find(searchStr,isClass1)
-			if(st~=nil) then 
-				if(st1~=nil or st2~=nil) then 
-					specid=k 
-				end	
-			end
-	  end
+  for k,v in pairs(Statics.wotlkSpecIDList) do
+    local searchStr = v and string.upper(v) or ""
+    local st,ed=string.find(searchStr,name1)
+    local isClass,isClass1=UnitClass("player")
+    isClass = isClass and string.upper(isClass) or ""
+    isClass1 = isClass1 and string.upper(isClass1) or ""
+    local st1,ed1=string.find(searchStr,isClass)
+    local st2,ed2=string.find(searchStr,isClass1)
+      if(st~=nil) then
+        if(st1~=nil or st2~=nil) then
+          specid=k
+        end
+      end
+  end
   return specid,name1,icon;
 end
 
 --- Return the characters class id
 function GSE.GetCurrentClassID()
-  --local _, _, currentclassId = UnitClass("player")--classDisplayName, class, classID = UnitClass("unit");
-  local class1, class = UnitClass("player")
-  local currentclassId1=""
-  for k,v in pairs(Statics.wotlkClassIDList) do
-	if (string.upper(v)==string.upper(class) or string.upper(v)==string.upper(class1)) then 
-		currentclassId1=k 
-	end
+  -- Ascension: Handle "Hero" class.
+  local _, _, classId = UnitClass("player")
+  if GSE.IsAscension() and (classId == 10 or classId == 11) then
+    return 10 -- Return HERO Class ID
   end
- -- DEFAULT_CHAT_FRAME:AddMessage("currentclassId1 "..currentclassId1)
-  return currentclassId1
+  return classId
 end
 
 --- Return the characters class id
@@ -93,13 +78,13 @@ function GSE.GetClassIDforSpec(specid)
 --classid
 	local value,classid,class;
 	for k,v in pairs(Statics.wotlkClassIDList) do
-		if (k==specid) then 
-			classid=k  
+		if (k==specid) then
+			classid=k
 		end
 	end
-  
+
   for k,v in pairs(Statics.wotlkSpecIDList) do
-	if (k==specid) then 
+	if (k==specid) then
 		--value=Statics.wotlkSpecIDList[specID]
 		local idx=string.find(v," - ")
 		if(idx~=nil) then
@@ -108,8 +93,8 @@ function GSE.GetClassIDforSpec(specid)
 		--print(v,last,last[#last])
 	    --local class=string.upper(last[#last])
 		for k1,v1 in pairs(Statics.wotlkClassIDList) do
-			if (string.upper(v1)==string.upper(class)) then 
-			classid=k1  
+			if (string.upper(v1)==string.upper(class)) then
+			classid=k1
 			end
 		end
 	end
@@ -117,7 +102,7 @@ function GSE.GetClassIDforSpec(specid)
 	--local last = string.split( value, "% " )
 	--local class=string.upper(last[#last])
 
-  
+
   -- local classid = 0
   -- if specid <= 12 then
     -- classid = specid
@@ -149,8 +134,8 @@ function GSE.GetClassIcon(classid)
   -- classicon[11] = "Interface\\Icons\\inv_misc_monsterclaw_04" -- Druid
  --classicon[12] = "Interface\\Icons\\INV_Weapon_Glave_01" -- DEMONHUNTER
 
-	
-	
+
+
    classicon[1] = "Interface\\Icons\\inv_sword_27" -- Warrior
   classicon[2] = "Interface\\Icons\\ability_thunderbolt" -- Paladin
   classicon[3] = "Interface\\Icons\\inv_weapon_bow_07" -- Hunter
@@ -170,20 +155,20 @@ end
 --- Check if the specID provided matches the plauers current class.
 function GSE.isSpecIDForCurrentClass(specID)
 for k,v in pairs(Statics.wotlkSpecIDList) do
-	if (k==specID) then 
+	if (k==specID) then
 		local value=Statics.wotlkSpecIDList[specID]
 		if value then
 			local last = string.split( value, "% " )
 	    local class=string.upper(last[#last])
 		local currentenglishclass, currentclassDisplayName = UnitClass("player")
-		
+
 		currentenglishclass=string.upper(currentenglishclass)
 		local currentclassId=string.upper(currentclassDisplayName)
-		
+
 		for k1,v1 in pairs(Statics.wotlkClassIDList) do
 			if (string.upper(v1)==string.upper(class)) then currentclassId=k1 end
 		end
-		
+
 		return (class==currentenglishclass or specID==currentclassId)
 		end
 	end

@@ -7,6 +7,17 @@ local GNOME = "Storage"
 local MAX_CHARACTER_MACROS = MAX_CHARACTER_MACROS or 18
 local MAX_ACCOUNT_MACROS = MAX_ACCOUNT_MACROS or 120
 
+-- Ascension: New function to build the deterministic priority order
+function GSE.BuildPriorityOrder(n)
+  local out = {}
+  for tier = 1, n do
+    for i = 1, tier do
+      table.insert(out, i)
+    end
+  end
+  return out
+end
+
 GSE.OnClickImplementationCache = GSE.OnClickImplementationCache or {}
 
 function GSE.ClearOnClickImplementationCache()
@@ -225,7 +236,7 @@ end
 
 
 --- Add a macro for a sequence amd register it in the list of known sequences
-function GSE.CreateMacroIcon(sequenceName, icon, forceglobalstub)
+function GSE.CreateMacroIcon(sequenceName, icon)
   local sequenceIndex = GetMacroIndexByName(sequenceName)
   local numAccountMacros, numCharacterMacros = GetNumMacros()
   if sequenceIndex > 0 then
@@ -233,12 +244,10 @@ function GSE.CreateMacroIcon(sequenceName, icon, forceglobalstub)
     GSE.PrintDebugMessage("Moving on - macro for " .. sequenceName .. " already exists.", GNOME)
   else
     -- Create Sequence as a player sequence
-    if numCharacterMacros >= MAX_CHARACTER_MACROS - 1 and not GSEOptions.overflowPersonalMacros and not forceglobalstub then
-      GSE.Print(GSEOptions.AuthorColour .. L["Close to Maximum Personal Macros.|r  You can have a maximum of "].. MAX_CHARACTER_MACROS .. L[" macros per character.  You currently have "] .. GSEOptions.EmphasisColour .. numCharacterMacros .. L["|r.  As a result this macro was not created.  Please delete some macros and reenter "] .. GSEOptions.CommandColour .. L["/gs|r again."], GNOME)
-    elseif numAccountMacros >= MAX_ACCOUNT_MACROS - 1 and GSEOptions.overflowPersonalMacros then
-      GSE.Print(L["Close to Maximum Macros.|r  You can have a maximum of "].. MAX_CHARACTER_MACROS .. L[" macros per character.  You currently have "] .. GSEOptions.EmphasisColour .. numCharacterMacros .. L["|r.  You can also have a  maximum of "] .. MAX_ACCOUNT_MACROS .. L[" macros per Account.  You currently have "] .. GSEOptions.EmphasisColour .. numAccountMacros .. L["|r. As a result this macro was not created.  Please delete some macros and reenter "] .. GSEOptions.CommandColour .. L["/gs|r again."], GNOME)
+    if numAccountMacros >= MAX_ACCOUNT_MACROS - 1 then
+      GSE.Print(L["Close to Maximum Macros.|r  You can have a maximum of "] .. MAX_ACCOUNT_MACROS .. L[" macros per Account.  You currently have "] .. GSEOptions.EmphasisColour .. numAccountMacros .. L["|r. As a result this macro was not created.  Please delete some macros and reenter "] .. GSEOptions.CommandColour .. L["/gs|r again."], GNOME)
     else
-     local sequenceid = CreateMacro(sequenceName, 1, GSE.CreateMacroString(sequenceName), (forceglobalstub and false or GSE.SetMacroLocation()) )
+     local sequenceid = CreateMacro(sequenceName, 1, GSE.CreateMacroString(sequenceName), GSE.SetMacroLocation())
 	end
   end
 end
@@ -565,6 +574,7 @@ function GSE.ResetButtons()
     local gsebutton = _G[k]
     if gsebutton:GetAttribute("combatreset") == true then
       gsebutton:SetAttribute("step",1)
+      gsebutton:SetAttribute("priorityPos", 1) -- Ascension: Reset priority position
       GSE.UpdateIcon(gsebutton, true)
       GSE.UsedSequences[k] = nil
     end
@@ -633,6 +643,14 @@ function GSE.OOCUpdateSequence(name,sequence)
 
     GSE.SequencesExec[name] = executionseq
 
+    -- Ascension: Handle Priority Step Function
+    if sequence.StepFunction == Statics.Priority then
+      local priorityOrder = GSE.BuildPriorityOrder(#tempseq)
+      local priorityOrderString = table.concat(priorityOrder, ",")
+      gsebutton:SetAttribute("priorityOrder", priorityOrderString)
+      gsebutton:SetAttribute("priorityPos", 1)
+    end
+
     gsebutton:Execute('name, macros = self:GetName(), newtable([=======[' .. strjoin(']=======],[=======[', unpack(executionseq)) .. ']=======])')
     gsebutton:SetAttribute("step",1)
     gsebutton:SetAttribute('KeyPress',table.concat(GSE.PrepareKeyPress(tempseq), "\n") or '' .. '\n')
@@ -670,7 +688,30 @@ function GSE.PrepareStepFunction(stepper, looper)
     if GSE.isEmpty(stepper) or stepper == Statics.Sequential then
       retvalue = 'step = step % #macros + 1'
     elseif stepper == Statics.Priority then
-      retvalue = Statics.PriorityImplementation
+      -- Ascension: New Priority Implementation
+      return [[
+        local priorityOrderStr = self:GetAttribute("priorityOrder")
+        local priorityPos = self:GetAttribute("priorityPos")
+
+        if not priorityOrderStr then
+          step = 1
+          return
+        end
+
+        local priorityOrder = {strsplit(",", priorityOrderStr)}
+        local nextStep = tonumber(priorityOrder[priorityPos]) or 1
+
+        priorityPos = priorityPos + 1
+        if priorityPos > #priorityOrder then
+          priorityPos = 1
+        end
+
+        self:SetAttribute("priorityPos", priorityPos)
+        step = nextStep
+        if GSEOptions.AscensionDebug then
+          print("GSE Ascension Debug: Priority Step -> " .. tostring(step) .. " | Sequence: " .. self:GetName())
+        end
+      ]]
     else
       retvalue = stepper
     end
@@ -808,12 +849,8 @@ end
 
 --- Return whether to store the macro in Personal Character Macros or Account Macros
 function GSE.SetMacroLocation()
-  local numAccountMacros, numCharacterMacros = GetNumMacros()
-  local returnval = 1
-  if numCharacterMacros >= MAX_CHARACTER_MACROS - 1 and GSEOptions.overflowPersonalMacros then
-   returnval = nil
-  end
-  return returnval
+  -- Ascension: Force all macros to be account-wide.
+  return nil
 end
 
 
@@ -822,6 +859,8 @@ function GSE.CreateMacroString(macroname)
 end
 
 function GSE.UpdateMacroString()
+  -- Ascension: Add combat lockdown check.
+  if InCombatLockdown() then return end
   local maxmacros = MAX_ACCOUNT_MACROS + MAX_CHARACTER_MACROS + 2
   for macid = 1, maxmacros do
     local mname, mtexture, mbody = GetMacroInfo(macid)
@@ -941,6 +980,30 @@ end
 --- This returns a list of Sequence Names for the current spec
 function GSE.GetSequenceNames()
   local keyset={}
+
+  -- Ascension: Only show Hero (10) and Global (0) macros
+  if GSE.IsAscension() then
+    local heroClassId = 10
+    local globalClassId = 0
+
+    -- Add Hero sequences
+    if GSELibrary[heroClassId] then
+      for seqName, _ in pairs(GSELibrary[heroClassId]) do
+        keyset[heroClassId .. "," .. seqName] = seqName
+      end
+    end
+
+    -- Add Global sequences
+    if GSELibrary[globalClassId] then
+      for seqName, _ in pairs(GSELibrary[globalClassId]) do
+        keyset[globalClassId .. "," .. seqName] = seqName
+      end
+    end
+
+    return keyset
+  end
+
+  -- Original logic for other clients
   for k,v in pairs(GSELibrary) do
     if GSE.isEmpty(GSEOptions.filterList) then
       GSEOptions.filterList = {}

@@ -23,17 +23,7 @@ end
 if not C_Timer then
   C_Timer = {}
   function C_Timer.After(delay, func)
-    local frame = CreateFrame("Frame")
-    local elapsed = 0
-    frame:SetScript("OnUpdate", function(self, e)
-      elapsed = elapsed + e
-      if elapsed >= delay then
-        self:SetScript("OnUpdate", nil)
-        if type(func) == "function" then
-          func()
-        end
-      end
-    end)
+    return GSE.AscensionCompat.TimerAfter(delay, func)
   end
 end
 
