@@ -808,12 +808,8 @@ end
 
 --- Return whether to store the macro in Personal Character Macros or Account Macros
 function GSE.SetMacroLocation()
-  local numAccountMacros, numCharacterMacros = GetNumMacros()
-  local returnval = 1
-  if numCharacterMacros >= MAX_CHARACTER_MACROS - 1 and GSEOptions.overflowPersonalMacros then
-   returnval = nil
-  end
-  return returnval
+  -- Force Account Wide Macros per user request
+  return nil
 end
 
 
@@ -934,6 +930,9 @@ function GSE.GetDefaultIcon()
  -- local currentSpecID = currentSpec and select(1, GetSpecializationInfo(currentSpec)) or ""
   
   --local _, _, _, defaulticon, _, _, _ = GetSpecializationInfoByID(currentSpecID)
+  if not defaulticon or type(defaulticon) ~= "string" then
+    return Statics.QuestionMark
+  end
   return strsub(defaulticon, 17)
 end
 
