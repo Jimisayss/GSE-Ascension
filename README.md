@@ -98,6 +98,7 @@ Built using:
 - Some operations fail during combat due to Blizzard's combat lockdown
 - Spec detection uses talent tree analysis (pre-specialization era)
 - Maximum of 120 character macros + 18 account macros
+- Conflicts with TSM cause taint, breaking GSE. Dont use TSM with GSE.
 
 ## Contributing
 
