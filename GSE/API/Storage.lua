@@ -7,6 +7,25 @@ local GNOME = "Storage"
 local MAX_CHARACTER_MACROS = MAX_CHARACTER_MACROS or 18
 local MAX_ACCOUNT_MACROS = MAX_ACCOUNT_MACROS or 120
 
+--- Generates a weighted priority table for a sequence.
+-- The table is constructed to attempt higher-priority spells more frequently.
+-- For a sequence of n spells, the generated table will be a concatenation of
+-- [1], [1, 2], [1, 2, 3], ..., [1, 2, ..., n].
+-- @param sequence The macro sequence table.
+-- @return A new table containing the weighted sequence of spell indices.
+function GSE.GeneratePriorityTable(sequence)
+  local priority_table = {}
+  if sequence then
+    local num_macros = #sequence
+    for i = 1, num_macros do
+      for j = 1, i do
+        table.insert(priority_table, j)
+      end
+    end
+  end
+  return priority_table
+end
+
 
 --- Delete a sequence starting with the macro and then the sequence from the library
 function GSE.DeleteSequence(classid, sequenceName)
@@ -19,7 +38,7 @@ function GSE.CloneSequence(sequence, keepcomments)
     GSE.PrintDebugMessage("CloneSequence: sequence is nil or empty", "Storage")
     return nil
   end
-  
+
   local newsequence = {}
 
   for k,v in pairs(sequence) do
@@ -41,7 +60,7 @@ function GSE.CloneMacroVersion(macroversion, keepcomments)
   if GSE.isEmpty(macroversion) then
     return {}
   end
-  
+
   local retseq = {}
   for k,v in ipairs(macroversion) do
     if GSE.isEmpty(string.find(v, '--', 1, true)) then
@@ -131,7 +150,7 @@ function GSE.OOCAddSequenceToCollection(sequenceName, sequence, classid)
     if GSE.isEmpty(GSELibrary[classid][sequenceName].ManualIntervention) then --- Added by me
 		  -- Macro hasnt been touched.
 		  GSE.PrintDebugMessage(L["No changes were made to "].. sequenceName, "Storage")
-		
+
 		-- check if source the same.  If so ignore
 		if sequence.MacroVersions and GSELibrary[classid] and GSELibrary[classid][sequenceName] and GSELibrary[classid][sequenceName].MacroVersions then
 		  for k,v in ipairs(sequence.MacroVersions) do
@@ -598,8 +617,15 @@ function GSE.OOCUpdateSequence(name,sequence)
 
     end
 
-    for k,v in ipairs(tempseq) do
-      table.insert(executionseq, v)
+    if sequence.StepFunction == Statics.Priority then
+      local priority_table = GSE.GeneratePriorityTable(tempseq)
+      for _, macro_index in ipairs(priority_table) do
+        table.insert(executionseq, tempseq[macro_index])
+      end
+    else
+      for k,v in ipairs(tempseq) do
+        table.insert(executionseq, v)
+      end
     end
 
     gsebutton:SetAttribute('loopstop', table.getn(executionseq))
@@ -612,6 +638,7 @@ function GSE.OOCUpdateSequence(name,sequence)
     end
 
     GSE.SequencesExec[name] = executionseq
+    GSE.PrintDebugMessage("Execution sequence for " .. name .. ": " .. table.concat(executionseq, ", "), "Storage")
 
     gsebutton:Execute('name, macros = self:GetName(), newtable([=======[' .. strjoin(']=======],[=======[', unpack(executionseq)) .. ']=======])')
     gsebutton:SetAttribute("step",1)
@@ -647,10 +674,8 @@ function GSE.PrepareStepFunction(stepper, looper)
       retvalue = Statics.LoopPriorityImplementation
     end
   else
-    if GSE.isEmpty(stepper) or stepper == Statics.Sequential then
+    if GSE.isEmpty(stepper) or stepper == Statics.Sequential or stepper == Statics.Priority then
       retvalue = 'step = step % #macros + 1'
-    elseif stepper == Statics.Priority then
-      retvalue = Statics.PriorityImplementation
     else
       retvalue = stepper
     end
@@ -872,12 +897,12 @@ end
 function GSE.CleanCorruptedSequences()
   local cleanedCount = 0
   local sequenceNames = GSE.GetSequenceNames()
-  
+
   for k,v in GSE.pairsByKeys(sequenceNames) do
     local elements = GSE.split(k, ",")
     local classid = tonumber(elements[1])
     local sequenceName = elements[2]
-    
+
     -- Try to clone the sequence - if it fails, it's corrupted
     if GSELibrary[classid] and GSELibrary[classid][sequenceName] then
       local testSequence = GSE.CloneSequence(GSELibrary[classid][sequenceName], true)
@@ -886,7 +911,7 @@ function GSE.CleanCorruptedSequences()
         GSE.Print("Removing corrupted sequence: " .. sequenceName .. " (class " .. classid .. ")")
         GSELibrary[classid][sequenceName] = nil
         cleanedCount = cleanedCount + 1
-        
+
         -- Also try to remove the associated macro stub
         local macroIndex = GetMacroIndexByName(sequenceName)
         if macroIndex and macroIndex > 0 then
@@ -896,7 +921,7 @@ function GSE.CleanCorruptedSequences()
       end
     end
   end
-  
+
   if cleanedCount > 0 then
     GSE.Print("Cleaned " .. cleanedCount .. " corrupted sequences. Please /reload to refresh the sequence list.")
     -- Only update GUI if the frame exists
@@ -912,7 +937,7 @@ end
 function GSE.GetDefaultIcon()
   local currentSpec, currentSpecID,defaulticon = GSE.GetCurrentSpecID()
  -- local currentSpecID = currentSpec and select(1, GetSpecializationInfo(currentSpec)) or ""
-  
+
   --local _, _, _, defaulticon, _, _, _ = GetSpecializationInfoByID(currentSpecID)
   return strsub(defaulticon, 17)
 end
@@ -959,7 +984,7 @@ function GSE.GetMacroIcon(classid, sequenceIndex)
   if GSE.isEmpty(classid) or GSE.isEmpty(sequenceIndex) then
     return GSEOptions.DefaultDisabledMacroIcon or "INV_MISC_QUESTIONMARK"
   end
-  
+
   classid = tonumber(classid)
   GSE.PrintDebugMessage("sequenceIndex: " .. (GSE.isEmpty(sequenceIndex) and "No value" or sequenceIndex), GNOME)
   local macindex = GetMacroIndexByName(sequenceIndex)
@@ -974,7 +999,7 @@ function GSE.GetMacroIcon(classid, sequenceIndex)
   if GSE.isEmpty(GSELibrary[classid]) then
     return GSEOptions.DefaultDisabledMacroIcon or "INV_MISC_QUESTIONMARK"
   end
-  
+
   local sequence = GSELibrary[classid][sequenceIndex]
   if(sequence==nil) then return "INV_MISC_QUESTIONMARK" end
   if GSE.isEmpty(sequence.Icon) and GSE.isEmpty(iconid) then
@@ -1065,11 +1090,11 @@ function GSE.CreateButton(name, sequence)
   --gsebutton:Execute('self:SetAttribute("step", 0)')
   --gsebutton:SetAttribute('step', 0)
   --gsebutton:Execute('step=0')
-  
+
   gsebutton.UpdateIcon = GSE.UpdateIcon
   gsebutton:HookScript("OnUpdate", GSE.btnOnUpdate)
   gsebutton:HookScript("OnClick", GSE.btnOnClick)
-  
+
 end
 
 function GSE.btnOnClick(self, button)
@@ -1093,11 +1118,11 @@ function GSE.GetNextCastSequenceSpell(buttonName, castSequenceArgs)
   if not GSE.CastSequenceState then
     GSE.CastSequenceState = {}
   end
-  
+
   -- Parse the castsequence arguments
   local spells = {}
   local resetCondition = nil
-  
+
   -- Handle reset conditions like "reset=target" or "reset=combat"
   local args = castSequenceArgs
   if string.find(args, "reset=") then
@@ -1108,7 +1133,7 @@ function GSE.GetNextCastSequenceSpell(buttonName, castSequenceArgs)
       args = string.sub(args, spaceAfterReset + 1)
     end
   end
-  
+
   -- Split spells by comma
   local currentPos = 1
   while currentPos <= string.len(args) do
@@ -1121,18 +1146,18 @@ function GSE.GetNextCastSequenceSpell(buttonName, castSequenceArgs)
       spell = string.sub(args, currentPos)
       currentPos = string.len(args) + 1
     end
-    
+
     -- Trim whitespace
     spell = string.gsub(spell, "^%s*(.-)%s*$", "%1")
     if spell ~= "" then
       table.insert(spells, spell)
     end
   end
-  
+
   if table.getn(spells) == 0 then
     return nil
   end
-  
+
   -- Initialize state for this button if needed
   if not GSE.CastSequenceState[buttonName] then
     GSE.CastSequenceState[buttonName] = {
@@ -1140,9 +1165,9 @@ function GSE.GetNextCastSequenceSpell(buttonName, castSequenceArgs)
       lastReset = GetTime()
     }
   end
-  
+
   local state = GSE.CastSequenceState[buttonName]
-  
+
   -- Check for reset conditions (simplified)
   local shouldReset = false
   if resetCondition then
@@ -1152,41 +1177,41 @@ function GSE.GetNextCastSequenceSpell(buttonName, castSequenceArgs)
       shouldReset = true
     end
   end
-  
+
   if shouldReset then
     state.position = 1
     state.lastReset = GetTime()
   end
-  
+
   -- Ensure position is within bounds
   if state.position > table.getn(spells) then
     state.position = 1
   end
-  
+
   local nextSpell = spells[state.position]
-  
+
   -- Advance position for next call (but don't save it yet - only advance when macro is actually used)
   -- We'll advance this when the macro button is clicked
-  
+
   return nextSpell
 end
 
 function GSE.UpdateIcon(self, reset)
-	
+
   local step = self:GetAttribute('step') or 1
-  
+
   local gsebutton = self:GetName()
   if GSE.isEmpty(GSE.SequencesExec) or GSE.isEmpty(GSE.SequencesExec[gsebutton]) then
     GSE.PrintDebugMessage("UpdateIcon: No execution sequence found for " .. gsebutton, "Storage")
     return
   end
-  
+
   local executionseq = GSE.SequencesExec[gsebutton]
   if GSE.isEmpty(executionseq[step]) then
     GSE.PrintDebugMessage("UpdateIcon: No command at step " .. step .. " for " .. gsebutton, "Storage")
     return
   end
-  
+
   local commandline, foundSpell, notSpell = executionseq[step], false, ''
   for cmd, etc in gmatch(commandline or '', '/(%w+)%s+([^\n]+)') do
     if Statics.CastCmds[strlower(cmd)] or strlower(cmd) == "castsequence" then
