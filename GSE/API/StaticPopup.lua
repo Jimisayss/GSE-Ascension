@@ -16,6 +16,19 @@ StaticPopupDialogs["GSE_ConfirmReloadUIDialog"] = {
   preferredIndex = 3,  -- avoid some UI taint, see http://www.wowace.com/announcements/how-to-avoid-some-ui-taint/
 }
 
+StaticPopupDialogs["GSE-ImportConfirmation"] = {
+  text = L["Are you sure you want to import this sequence?"],
+  button1 = L["Import"],
+  button2 = L["Cancel"],
+  OnAccept = function(self, data)
+    GSE.ImportSequence(data.importString, data.legacy, data.createicon, true)
+  end,
+  timeout = 0,
+  whileDead = true,
+  hideOnEscape = true,
+  preferredIndex = 3,
+}
+
 StaticPopupDialogs["GS-DebugOutput"] = {
   text = "Dump of GS Debug messages",
   button1 = L["Update"],

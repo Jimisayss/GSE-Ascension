@@ -19,6 +19,18 @@ function GSE.GetOptionsTable()
             name = L["General Options"],
             order = 100
           },
+          serverType = {
+            name = L["Server Type"],
+            desc = L["Select the type of server you are playing on."],
+            type = "select",
+            values = {
+              ["WotLK"] = "Standard WotLK",
+              ["Ascension"] = "Project Ascension",
+            },
+            set = function(info,val) GSEOptions.serverType = val end,
+            get = function(info) return GSEOptions.serverType or "WotLK" end,
+            order = 101
+          },
           showothergseusersintooltip = {
             name = L["Show GSE Users in LDB"],
             desc = L["GSE has a LibDataBroker (LDB) data feed.  List Other GSE Users and their version when in a group on the tooltip to this feed."],
@@ -223,7 +235,7 @@ function GSE.GetOptionsTable()
           },
           use6={
             name = L["Use Belt Item in KeyRelease"],
-            desc = L["Incorporate the belt slot into the KeyRelease. This is the equivalent of /use [combat] 6 in a KeyRelease."],
+            desc = L["Incorporate the belt slot into the KeyRelease. This is the equivalent of /use [combat] 5 in a KeyRelease."],
             type = "toggle",
             set = function(info,val) GSEOptions.use6 = val GSE.ReloadSequences() end,
             get = function(info) return GSEOptions.use6 end,

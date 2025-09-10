@@ -266,6 +266,7 @@ function GSE:UNIT_SPELLCAST_SUCCEEDED(event, unit, spell)
 	GCD_Update_Timer=myAceTimer:ScheduleTimer(AFTER_UNIT_SPELLCAST_SUCCEEDED, GCD_Timer)
     --GCD_Update_Timer = C_Timer.After(GCD_Timer, function () GCD = nil; GSE.PrintDebugMessage("GCD OFF") end)
     GSE.PrintDebugMessage("GCD Delay:" .. " " .. GCD_Timer)
+    GSE.CurrentGCD = GCD_Timer
 
     if GSE.RecorderActive then
       GSE.GUIRecordFrame.RecordSequenceBox:SetText(GSE.GUIRecordFrame.RecordSequenceBox:GetText() .. "/cast " .. spell .. "\n")
@@ -336,7 +337,7 @@ function GSE:GSSlash(input)
     local currentSpec = GSE.GetCurrentSpecID()
     local currentSpecID, specname, specicon = GSE.GetCurrentSpecID()
    -- local _, specname, specdescription, specicon, _, specrole, specclass = GetSpecializationInfoByID(currentSpecID)
-    GSE.Print(L["Your current Specialisation is "] .. currentSpecID .. ':' .. specname .. L["  The Alternative ClassID is "] .. currentclassId, GNOME)
+    GSE.Print(L["Your current Specialisation is "] .. currentSpecID .. ':' .. specname .. L["  The Alternative ClassID is "] .. GSE.GetCurrentClassID(), GNOME)
   elseif string.lower(input) == "help" then
     PrintGnomeHelp()
   elseif string.lower(input) == "cleanorphans" or string.lower(input) == "clean" then

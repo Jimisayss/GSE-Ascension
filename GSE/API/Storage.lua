@@ -274,7 +274,17 @@ function GSE.ImportSerialisedSequence(importstring, createicon)
 end
 
 --- Load a GSE Sequence Collection from a String
-function GSE.ImportSequence(importStr, legacy, createicon)
+function GSE.ImportSequence(importStr, legacy, createicon, issecure)
+  if not issecure then
+    local data = {
+      importString = importStr,
+      legacy = legacy,
+      createicon = createicon
+    }
+    StaticPopup_Show("GSE-ImportConfirmation", nil, nil, data)
+    return
+  end
+
   local success, returnmessage = false, ""
   importStr = GSE.StripControlandExtendedCodes(importStr)
   local functiondefinition =  GSE.FixQuotes(importStr) .. [===[
@@ -600,6 +610,22 @@ function GSE.OOCUpdateSequence(name,sequence)
       existingbutton = false
     end
     local gsebutton = _G[name]
+    if not GSE.isEmpty(tempseq.KeyPress) then
+      local keypressbutton = _G[name .. "_KeyPress"]
+      if GSE.isEmpty(keypressbutton) then
+        keypressbutton = CreateFrame("Button", name .. "_KeyPress", nil, "SecureActionButtonTemplate")
+      end
+      keypressbutton:SetAttribute("type", "macro")
+      keypressbutton:SetAttribute("macrotext", table.concat(GSE.PrepareKeyPress(tempseq), "\n"))
+    end
+    if not GSE.isEmpty(tempseq.KeyRelease) then
+      local keyreleasebutton = _G[name .. "_KeyRelease"]
+      if GSE.isEmpty(keyreleasebutton) then
+        keyreleasebutton = CreateFrame("Button", name .. "_KeyRelease", nil, "SecureActionButtonTemplate")
+      end
+      keyreleasebutton:SetAttribute("type", "macro")
+      keyreleasebutton:SetAttribute("macrotext", table.concat(GSE.PrepareKeyRelease(tempseq), "\n"))
+    end
     -- only translate a sequence if the option to use the translator is on, there is a translator available and the sequence matches the current class
     if GetLocale() ~= "enUS" then
       tempseq = GSE.TranslateSequence(tempseq, name)
@@ -642,9 +668,7 @@ function GSE.OOCUpdateSequence(name,sequence)
 
     gsebutton:Execute('name, macros = self:GetName(), newtable([=======[' .. strjoin(']=======],[=======[', unpack(executionseq)) .. ']=======])')
     gsebutton:SetAttribute("step",1)
-    gsebutton:SetAttribute('KeyPress',table.concat(GSE.PrepareKeyPress(tempseq), "\n"))
     GSE.PrintDebugMessage("GSUpdateSequence KeyPress updated to: " .. gsebutton:GetAttribute('KeyPress'))
-    gsebutton:SetAttribute('KeyRelease',table.concat(GSE.PrepareKeyRelease(tempseq), "\n"))
     GSE.PrintDebugMessage("GSUpdateSequence KeyRelease updated to: " .. gsebutton:GetAttribute('KeyRelease'))
     if existingbutton then
       gsebutton:UnwrapScript(gsebutton,'OnClick')
@@ -658,6 +682,12 @@ function GSE.OOCUpdateSequence(name,sequence)
     gsebutton:WrapScript(gsebutton, 'OnClick', GSE.PrepareOnClickImplementation(sequence))
     if not GSE.isEmpty(sequence.LoopLimit) then
       gsebutton:SetAttribute('looplimit', sequence.LoopLimit)
+    end
+    if not GSE.isEmpty(tempseq.KeyPress) then
+      gsebutton:SetScript("PreClick", function() _G[name .. "_KeyPress"]:Click() end)
+    end
+    if not GSE.isEmpty(tempseq.KeyRelease) then
+      gsebutton:SetScript("PostClick", function() _G[name .. "_KeyRelease"]:Click() end)
     end
   else
     GSE.Print(string.format(L["There is an issue with sequence %s.  It has not been loaded to prevent the mod from failing."], name))
@@ -981,6 +1011,9 @@ end
 
 --- Return the Macro Icon for the specified Sequence
 function GSE.GetMacroIcon(classid, sequenceIndex)
+  if GSEOptions.serverType == "Ascension" then
+    return "INV_MISC_QUESTIONMARK"
+  end
   if GSE.isEmpty(classid) or GSE.isEmpty(sequenceIndex) then
     return GSEOptions.DefaultDisabledMacroIcon or "INV_MISC_QUESTIONMARK"
   end
@@ -1007,10 +1040,13 @@ function GSE.GetMacroIcon(classid, sequenceIndex)
     if sequence.SpecID == 0 then
       return "INV_MISC_QUESTIONMARK"
     else
-     -- local _, _, _, specicon, _, _, _ = GetSpecializationInfoByID((GSE.isEmpty(sequence.SpecID) and GSE.GetCurrentSpecID() or sequence.SpecID))
-	 local specicon
-      GSE.PrintDebugMessage("No Sequence Icon setting to " .. strsub(specicon, 17), GNOME)
-      return strsub(specicon, 17)
+      local _, specicon = GetTalentTabInfo(GSE.GetCurrentSpecID())
+      if specicon then
+        GSE.PrintDebugMessage("No Sequence Icon setting to " .. specicon, GNOME)
+        return specicon
+      else
+        return "INV_MISC_QUESTIONMARK"
+      end
     end
   elseif GSE.isEmpty(iconid) and not GSE.isEmpty(sequence.Icon) then
 
