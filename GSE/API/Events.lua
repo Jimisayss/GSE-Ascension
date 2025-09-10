@@ -72,7 +72,7 @@ function GSE:PARTY_MEMBERS_CHANGED()
 end
 function GSE:ZONE_CHANGED_NEW_AREA()
  -- local name, type1, difficulty, difficultyName, maxPlayers, playerDifficulty, isDynamicInstance, mapID, instanceGroupSize = GetInstanceInfo()
- ---dynamicDifficulty reflected the normal/heroic switch and difficultyID the 10/25 player switch for dynamic instances). 
+ ---dynamicDifficulty reflected the normal/heroic switch and difficultyID the 10/25 player switch for dynamic instances).
  ---GetRaidDifficulty,GetDungeonDifficulty,IsInInstance,GetInstanceInfo(),GetInstanceDifficulty()
  -----3 → 10 Player
 -------------4 → 25 Player
@@ -109,7 +109,7 @@ local inInstance, instancetype = IsInInstance()
   else
     GSE.inDungeon = false
   end
-  
+
   -- In 3.3.5a: 2=Heroic 5-man/25-man normal, 3=10-man Heroic, 4=25-man Heroic
   if (difficulty == 2 or difficulty == 3 or difficulty == 4) then
     GSE.inHeroic = true
@@ -183,17 +183,17 @@ function GSE:ADDON_LOADED(event, addon)
   GSEOptions.ErroneousSpellID = {}
   GSEOptions.UnfoundSpellIDs = {}
   GSE:ZONE_CHANGED_NEW_AREA()
-  
+
   -- Ensure all macro strings are updated after loading
   GSE.UpdateMacroString()
-  
+
   GSE:SendMessage(Statics.CoreLoadedMessage)
 
   -- Register the Sample Macros
   local seqnames = {}
   table.insert(seqnames, "Assorted Sample Macros")
   GSE.RegisterAddon("Samples", GSE.VersionString, seqnames)
-  
+
   -- Load the documented sample macros if available
   if GSE.LoadDocumentedSampleMacros then
     GSE.LoadDocumentedSampleMacros()
@@ -266,7 +266,6 @@ function GSE:UNIT_SPELLCAST_SUCCEEDED(event, unit, spell)
 	GCD_Update_Timer=myAceTimer:ScheduleTimer(AFTER_UNIT_SPELLCAST_SUCCEEDED, GCD_Timer)
     --GCD_Update_Timer = C_Timer.After(GCD_Timer, function () GCD = nil; GSE.PrintDebugMessage("GCD OFF") end)
     GSE.PrintDebugMessage("GCD Delay:" .. " " .. GCD_Timer)
-    GSE.CurrentGCD = GCD_Timer
 
     if GSE.RecorderActive then
       GSE.GUIRecordFrame.RecordSequenceBox:SetText(GSE.GUIRecordFrame.RecordSequenceBox:GetText() .. "/cast " .. spell .. "\n")
@@ -411,7 +410,7 @@ function GSE:ProcessOOCQueue()
   if GSE.isEmpty(GSE.OOCQueue) then
     return
   end
-  
+
   for k,v in ipairs(GSE.OOCQueue) do
     if not InCombatLockdown() then
       local success, err = pcall(function()
@@ -419,7 +418,7 @@ function GSE:ProcessOOCQueue()
           GSE.PrintDebugMessage("Invalid OOC Queue entry", "Events")
           return
         end
-        
+
         if v.action == "UpdateSequence" then
           GSE.OOCUpdateSequence(v.name, v.macroversion)
         elseif v.action == "Save" then
@@ -429,15 +428,15 @@ function GSE:ProcessOOCQueue()
             GSE.Print("ERROR: Replace action missing classid or sequencename")
             return
           end
-          
+
           if GSE.isEmpty(GSELibrary[v.classid]) then
             GSELibrary[v.classid] = {}
           end
-          
+
           -- Always save the sequence directly
           GSELibrary[v.classid][v.sequencename] = v.sequence
           GSE.Print("Saved sequence: " .. v.sequencename .. " for class " .. v.classid)
-          
+
           if not GSE.isEmpty(v.sequence) and not GSE.isEmpty(v.sequence.MacroVersions) then
             local activeVersion = v.sequence.Default or 1
             if v.sequence.MacroVersions[activeVersion] then
@@ -450,11 +449,11 @@ function GSE:ProcessOOCQueue()
           GSE.OOCCheckMacroCreated(v.sequencename, v.create)
         end
       end)
-      
+
       if not success then
         GSE.PrintDebugMessage("Error processing OOC Queue item: " .. tostring(err), "Events")
       end
-      
+
       GSE.OOCQueue[k] = nil
     end
   end

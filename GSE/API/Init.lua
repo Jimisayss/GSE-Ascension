@@ -73,7 +73,6 @@ function GSE.PrintDebugMessage(message, module)
     end
 end
 
-GSE.CurrentGCD = GetSpellCooldown(61304)
 GSE.RecorderActive = false
 
 -- Macro mode Status

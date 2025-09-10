@@ -223,7 +223,7 @@ function GSE.GetOptionsTable()
           },
           use6={
             name = L["Use Belt Item in KeyRelease"],
-            desc = L["Incorporate the belt slot into the KeyRelease. This is the equivalent of /use [combat] 5 in a KeyRelease."],
+            desc = L["Incorporate the belt slot into the KeyRelease. This is the equivalent of /use [combat] 6 in a KeyRelease."],
             type = "toggle",
             set = function(info,val) GSEOptions.use6 = val GSE.ReloadSequences() end,
             get = function(info) return GSEOptions.use6 end,
